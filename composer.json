@@ -1,0 +1,23 @@
+{
+    "name": "webimage/application",
+    "description": "Application components",
+    "type": "library",
+    "require": {
+        "webimage/core": "dev-master",
+        "league/route": "^3.0",
+        "guzzlehttp/psr7": "^1.6",
+        "symfony/console": "^4.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Jones II",
+            "email": "rjones@corporatewebimage.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "WebImage\\": "src/"
+        }
+    }
+}
