@@ -19,5 +19,6 @@
         "psr-4": {
             "WebImage\\": "src/"
         }
-    }
+    },
+	"minimum-stability": "dev"
 }
