@@ -5,6 +5,7 @@ namespace WebImage\Controllers;
 use League\Route\Http\Exception\HttpExceptionInterface;
 use League\Route\Http\Exception\NotFoundException;
 use WebImage\Application\ApplicationInterface;
+use WebImage\View\ViewFinderInterface;
 
 class ExceptionsController extends AbstractController
 {
@@ -19,7 +20,20 @@ class ExceptionsController extends AbstractController
 
 	public function exception()
 	{
-		return $this->view($this->getExceptionViewVars());
+		return $this->view($this->getExceptionViewVars(), null, $this->getMasterViewToUse());
+	}
+
+	/**
+	 * Check if master view can be found and return.  Otherwise return false to indicate that the master view should not be used
+	 * @return false|mixed|string
+	 */
+	private function getMasterViewToUse()
+	{
+		/** @var ViewFinderInterface $viewFinder */
+		$viewFinder = $this->getContainer()->get(ViewFinderInterface::class);
+		$masterView = $viewFinder->find($this->getMasterViewName());
+
+		return null === $masterView ? false : $this->getMasterViewName();
 	}
 
 	/**
