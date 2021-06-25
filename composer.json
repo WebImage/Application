@@ -3,7 +3,7 @@
     "description": "Application components",
     "type": "library",
     "require": {
-        "webimage/core": "^1.0.0",
+        "webimage/core": "^1.0.3",
         "league/route": "^3.0",
         "guzzlehttp/psr7": "^1.6",
         "symfony/console": "^4.4"
