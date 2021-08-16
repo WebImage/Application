@@ -3,8 +3,6 @@
 namespace WebImage\Router;
 
 trait RouteCollectionMapTrait {
-	use \League\Route\RouteCollectionMapTrait;
-
 	protected $routes = [];
 
 	/**

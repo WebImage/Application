@@ -2,13 +2,8 @@
 
 namespace WebImage\ServiceManager;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use League\Container\ServiceProvider\ServiceProviderInterface;
 use WebImage\Config\Config;
-use WebImage\Http\Response;
-use WebImage\Http\ServerRequest;
-use WebImage\Router\RouteCollection;
-use WebImage\Router\RouteCollectionInterface;
 
 class ServiceManagerConfig extends Config implements ServiceManagerConfigInterface
 {
@@ -39,7 +34,7 @@ class ServiceManagerConfig extends Config implements ServiceManagerConfigInterfa
 		$serviceManager->add('copyright', 'Copyright (c) ' . date('Y') . ' Corporate Web Image');
 
 		foreach($this->getShared() as $alias => $concrete) {
-			$serviceManager->share($alias, $concrete);
+			$serviceManager->addShared($alias, $concrete);
 		}
 
 		foreach($this->getInvokables() as $alias => $concrete) {
@@ -47,8 +42,19 @@ class ServiceManagerConfig extends Config implements ServiceManagerConfigInterfa
 		}
 
 		foreach($this->getProviders() as $provider) {
-			$serviceManager->addServiceProvider($provider);
+			$serviceManager->addServiceProvider($this->getInstantiatedServiceProvider($serviceManager, $provider));
 		}
+	}
+
+	/**
+	 * Convenience method for instantiating class from ServiceManager or raw class name
+	 * @param ServiceManagerInterface $serviceManager
+	 * @param string $provider
+	 * @return ServiceProviderInterface
+	 */
+	private function getInstantiatedServiceProvider(ServiceManagerInterface $serviceManager, string $provider): ServiceProviderInterface
+	{
+		return $serviceManager->has($provider) ? $serviceManager->get($provider) : new $provider;
 	}
 
 	/**

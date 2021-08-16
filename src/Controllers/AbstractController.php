@@ -2,17 +2,16 @@
 
 namespace WebImage\Controllers;
 
-use League\Container\ContainerAwareInterface;
+use GuzzleHttp\Psr7\HttpFactory;
+use League\Route\ContainerAwareInterface;
+use League\Route\ContainerAwareTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use League\Container\ContainerAwareTrait;
 use WebImage\Application\ApplicationInterface;
 use WebImage\Config\Config;
 use WebImage\Core\Dictionary;
-use WebImage\Http\Response;
 use WebImage\String\Helper;
 use WebImage\View\Factory;
-use WebImage\View\View;
 use WebImage\View\ViewInterface;
 
 class AbstractController implements ControllerInterface, ContainerAwareInterface {
@@ -25,6 +24,8 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 	 * @var ResponseInterface
 	 */
 	private $response;
+	/** @var string The name used by the dispatcher / application strategy */
+	private $dispatchedActionName;
 	/**
 	 * @var Dictionary
 	 */
@@ -35,51 +36,40 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 	private $postVars;
 
 	/**
-	 * Take a routed requested and send it to the appropriate action
-	 *
-	 * @param ServerRequestInterface $request
-	 * @param ResponseInterface $response
-	 *
-	 * @return mixed
+	 * @inheritDoc
 	 */
-	public function handleRequest(ServerRequestInterface $request, ResponseInterface $response)
-	{
-		$this->request = $request;
-		$this->response = $response;
-
-		$action = $request->getAttribute(ControllerInterface::DISPATCH_ACTION_ATTRIBUTE);
-
-		/** @var ResponseInterface|string|array $result */
-		$result = call_user_func([$this, $action]);
-
-		if (is_array($result)) {
-			$response = $response->withAddedHeader('Content-type: ', 'application/json');
-			$response->getBody()->write(json_encode($result));
-		} else if (is_string($result)) {
-			$response->getBody()->write($result);
-		} else if ($result instanceof ViewInterface) {
-			$response->getBody()->write($result->render());
-		} else if ($result instanceof ResponseInterface) {
-			$response = $result;
-		}
-
-		return $response;
-	}
-
-	/**
-	 * @return ServerRequestInterface
-	 */
-	public function getRequest()
+	public function getRequest(): ServerRequestInterface
 	{
 		return $this->request;
 	}
 
 	/**
-	 * @return ResponseInterface
+	 * @inheritDoc
 	 */
-	public function getResponse()
+	public function setRequest(ServerRequestInterface $request)
 	{
+		$this->request = $request;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getResponse(): ResponseInterface
+	{
+		if ($this->response === null) {
+			$httpFactory = new HttpFactory();
+			$this->response = $httpFactory->createResponse();
+		}
+
 		return $this->response;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function setResponse(ResponseInterface $response)
+	{
+		$this->response = $response;
 	}
 
 	/**
@@ -106,7 +96,7 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 	 * @param null|string|bool $masterViewName null to use default; string for path to template; false
 	 * @return ViewInterface
 	 */
-	protected function view(array $vars=array(), $viewKey=null, $masterViewName=null)
+	protected function view(array $vars=array(), $viewKey=null, $masterViewName=null): ?ViewInterface
 	{
 		if (null !== $viewKey && !is_string($viewKey)) {
 			throw new \InvalidArgumentException('Expecting string for viewKey');
@@ -128,6 +118,16 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 		return $view;
 	}
 
+	public function getDispatchedActionName(): string
+	{
+		return $this->dispatchedActionName;
+	}
+
+	public function setDispatchedActionName(string $action): void
+	{
+		$this->dispatchedActionName = $action;
+	}
+
 	/**
 	 * Generate a view name based on the controller and action
 	 *
@@ -135,8 +135,8 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 	 */
 	protected function getDefaultViewName()
 	{
-		$name = $this->getControllerNameForView();
-		$action = $this->getRequest()->getAttribute(ControllerInterface::DISPATCH_ACTION_ATTRIBUTE);
+		$name   = $this->getControllerNameForView();
+		$action = $this->getDispatchedActionName();
 		$action = strtolower(Helper::pascalToHyphenated($action));
 
 		return sprintf('%s/%s/%s', 'controllers', $name, $action);
@@ -176,10 +176,9 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 
 	public function redirect($url, $responseCode=301)
 	{
-		$response = $this->getResponse()
-			->withStatus($responseCode)
-			->withHeader('Location', $url);
+		$factory = new HttpFactory();
 
-		return $response;
+		return $factory->createResponse($responseCode)
+			->withHeader('Location', $url);
 	}
 }

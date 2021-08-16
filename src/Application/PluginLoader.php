@@ -64,7 +64,7 @@ class PluginLoader
 				$this->verifyRequirements($plugin);
 				$plugin->load($app);
 				$this->loaded[] = $pluginId;
-				$app->getServiceManager()->share($pluginId, $plugin);
+				$app->getServiceManager()->addShared($pluginId, $plugin);
 			}
 		}
 	}

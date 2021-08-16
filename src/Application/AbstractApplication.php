@@ -34,7 +34,7 @@ abstract class AbstractApplication implements ApplicationInterface
 		$this->setServiceManager($serviceManager);
 
 		// Register this app instance with the service manager
-		$serviceManager->share(ApplicationInterface::class, $this);
+		$serviceManager->addShared(ApplicationInterface::class, $this);
 	}
 
 	/**

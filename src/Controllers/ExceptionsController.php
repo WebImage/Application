@@ -2,18 +2,20 @@
 
 namespace WebImage\Controllers;
 
+use League\Route\ContainerAwareInterface;
 use League\Route\Http\Exception\HttpExceptionInterface;
 use League\Route\Http\Exception\NotFoundException;
+use Psr\Http\Message\ServerRequestInterface;
 use WebImage\Application\ApplicationInterface;
 use WebImage\View\ViewFinderInterface;
 
-class ExceptionsController extends AbstractController
+class ExceptionsController extends AbstractController implements ContainerAwareInterface
 {
 	CONST ATTR_EXCEPTION = 'exception';
 
 	private $exception;
 
-	public function setError(\Exception $e)
+	public function setException(\Throwable $e): void
 	{
 		$this->exception = $e;
 	}
@@ -39,7 +41,7 @@ class ExceptionsController extends AbstractController
 	/**
 	 * @return array
 	 */
-	protected function getExceptionViewVars()
+	protected function getExceptionViewVars(): array
 	{
 		return [
 			'title' => $this->getTitle(),
@@ -49,7 +51,7 @@ class ExceptionsController extends AbstractController
 		];
 	}
 
-	protected function getTitle()
+	protected function getTitle(): string
 	{
 		$exception = $this->getException();
 		if ($exception instanceof HttpExceptionInterface) {
@@ -59,7 +61,7 @@ class ExceptionsController extends AbstractController
 		return 'Oops!  There was an issue with your request.';
 	}
 
-	protected function getMessage()
+	protected function getMessage(): string
 	{
 		$exception = $this->getException();
 		if ($exception instanceof NotFoundException) {
@@ -72,9 +74,9 @@ class ExceptionsController extends AbstractController
 	/**
 	 * @return HttpExceptionInterface|\Exception|null
 	 */
-	protected function getException()
+	protected function getException(): \Throwable
 	{
-		return $this->getRequest()->getAttribute(self::ATTR_EXCEPTION);
+		return $this->exception;
 	}
 
 	/**

@@ -2,10 +2,10 @@
 
 namespace WebImage\View;
 
-use League\Container\Definition\ClassDefinitionInterface;
-use League\Container\ServiceProvider\AbstractServiceProvider;
+use League\Container\Definition\DefinitionInterface;
 use WebImage\Application\ApplicationInterface;
 use WebImage\Config\Config;
+use WebImage\Container\ServiceProvider\AbstractServiceProvider;
 use WebImage\Paths\PathManager;
 use WebImage\Paths\PathManagerInterface;
 use WebImage\View\Engines\PhpEngine;
@@ -29,7 +29,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register()
+	public function register(): void
 	{
 		$config = $this->getViewConfig();
 
@@ -46,10 +46,10 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 */
 	protected function registerViewFactory(Config $config)
 	{
-		/** @var ClassDefinitionInterface $def */
+		/** @var DefinitionInterface $def */
 		$def = $this->getContainer()
-			->share(Factory::class, Factory::class)
-			->withArguments([
+			->addShared(Factory::class, Factory::class)
+			->addArguments([
 				ViewFinderInterface::class,
 				EngineResolver::class
 			]);
@@ -104,7 +104,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 		$extensions = isset($config[self::CONFIG_EXTENSIONS]) ? $config[self::CONFIG_EXTENSIONS] : new Config();
 
 		foreach($extensions as $extension => $engineKey) {
-			$def->withMethodCall('addExtension', [$extension, $engineKey]);
+			$def->addMethodCall('addExtension', [$extension, $engineKey]);
 		}
 	}
 
@@ -115,7 +115,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 */
 	protected function registerEngineResolver(Config $config)
 	{
-		$this->getContainer()->share(EngineResolver::class, function() use ($config)
+		$this->getContainer()->addShared(EngineResolver::class, function() use ($config)
 		{
 			$resolver = new EngineResolver();
 
@@ -136,7 +136,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 */
 	protected function registerViewFinder(Config $config)
 	{
-		$this->getContainer()->share(ViewFinderInterface::class, function() use ($config)
+		$this->getContainer()->addShared(ViewFinderInterface::class, function() use ($config)
 		{
 			$pathManager = $this->getViewPathManager($config);
 
@@ -226,6 +226,6 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 
 	protected function registerPhpEngine()
 	{
-		$this->getContainer()->share(PhpEngine::class, PhpEngine::class);
+		$this->getContainer()->addShared(PhpEngine::class, PhpEngine::class);
 	}
 }

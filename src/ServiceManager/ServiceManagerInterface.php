@@ -2,6 +2,7 @@
 
 namespace WebImage\ServiceManager;
 
-use League\Container\ContainerInterface;
+use League\Container\DefinitionContainerInterface;
+use Psr\Container\ContainerInterface;
 
-interface ServiceManagerInterface extends ContainerInterface {}
+interface ServiceManagerInterface extends DefinitionContainerInterface {}

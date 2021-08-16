@@ -2,234 +2,154 @@
 
 namespace WebImage\Router\Strategy;
 
-use Exception;
-use Illuminate\Console\Application;
-use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
-use League\Route\Http\Exception\MethodNotAllowedException;
+//use Exception;
+//use Illuminate\Console\Application;
+use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\Response;
+use League\Route\ContainerAwareInterface;
+use League\Route\ContainerAwareTrait;
+use League\Container\ContainerAwareInterface as ContainerContainerAwareInterface;
+//use League\Route\Http\Exception\MethodNotAllowedException;
+//use League\Route\Http\Exception\NotFoundException;
+//use League\Route\Route As LeagueRoute;
 use League\Route\Http\Exception\NotFoundException;
-use League\Route\Route As LeagueRoute;
+use League\Route\Route as LeagueRoute;
 use League\Route\Strategy\ApplicationStrategy as BaseApplicationStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use WebImage\Application\ApplicationInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use WebImage\Controllers\ControllerInterface;
-use WebImage\Controllers\ErrorsController;
 use WebImage\Controllers\ExceptionsController;
 use WebImage\Router\Route;
-use WebImage\Router\RouteHelper;
-use WebImage\String\Url;
+use WebImage\View\ViewInterface;
 
 class ApplicationStrategy extends BaseApplicationStrategy implements ContainerAwareInterface {
 	use ContainerAwareTrait;
 
-	/**
-	 * @inheritdoc
-	 */
-	public function getCallable(LeagueRoute $route, array $vars)
+	public function invokeRouteCallable(LeagueRoute $route, ServerRequestInterface $request): ResponseInterface
 	{
-		return function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use ($route, $vars)
-		{
-			$request = $this->injectVarsAsAttributes($request, $vars);
+		$handler = $route->getCallable($this->getContainer());
 
-			$request = $this->preProcessCallable($request, $route);
+		if (is_array($handler) && is_object($handler[0])) {
+			if ($handler[0] instanceof ControllerInterface) {
+				try {
+					$handler[0]->setDispatchedActionName($handler[1]);
+				} catch (\Throwable $e) {
+					echo $e->getMessage() . '<br>';
+					die(__FILE__ . ':' . __LINE__ . PHP_EOL);
+				}
 
-			$response = call_user_func($route->getCallable(), $request, $response);
-
-			if ($response instanceof ResponseInterface) {
-				return $next($request, $response);
+				$handler[0]->setRequest($request);
 			}
 
-			return $response;
-		};
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getNotFoundDecorator(NotFoundException $exception)
-	{
-		return $this->exceptionResponse($exception);
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getExceptionDecorator(Exception $exception)
-	{
-		return $this->exceptionResponse($exception);
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function getMethodNotAllowedDecorator(MethodNotAllowedException $exception)
-	{
-		return $this->exceptionResponse($exception);
-	}
-
-	/**
-	 * Injects vars into the request as attributes
-	 *
-	 * @param ServerRequestInterface $request
-	 * @param array $vars
-	 * @return ServerRequestInterface|static
-	 */
-	protected function injectVarsAsAttributes(ServerRequestInterface $request, array $vars)
-	{
-		foreach($vars as $key => $val) {
-			$request = $request->withAttribute($key, $val);
-		}
-
-		return $request;
-	}
-
-	/**
-	 * Changes the route callable to call handleRequest() and passes the "action" as an attribute
-	 * @param ServerRequestInterface $request
-	 * @param Route $route
-	 *
-	 * @return ServerRequestInterface
-	 */
-	private function preProcessCallable(ServerRequestInterface $request, Route $route)
-	{
-		$callable = $route->getCallable();
-
-		$app = $this->getApplication($route);
-		$config = $app->getConfig();
-
-		if (is_array($callable) && isset($callable[0]) && is_object($callable[0])) {
-			if ($callable[0] instanceof ControllerInterface) {
-				$request = $request->withAttribute(ControllerInterface::DISPATCH_ACTION_ATTRIBUTE, $callable[1]);
-				$callable[1] = ControllerInterface::DISPATCH_METHOD;
-			}
-			if ($callable[0] instanceof ContainerAwareInterface) {
-				$callable[0]->setContainer($this->getContainer());
+			if ($handler[0] instanceof ContainerAwareInterface) {
+				$handler[0]->setContainer($this->getContainer());
 			}
 		}
 
-		$route->setCallable($callable);
-
-		return $request;
+		return $this->normalizeHandlerResponse($handler($request, $route->getVars()));
 	}
 
 	/**
-	 * @param Route $route
-	 *
-	 * @return ApplicationInterface
+	 * @inheritdoc
 	 */
-	private function getApplication(Route $route)
+	public function getNotFoundDecorator(NotFoundException $exception): MiddlewareInterface
 	{
-		return $route->getContainer()->get(ApplicationInterface::class);
-	}
-	/**
-	 * Modify the response if the exception is an Http exception
-	 *
-	 * @param Exception $exception
-	 * @return \Closure
-	 */
-	private function exceptionResponse(Exception $exception)
-	{
-		return function(ServerRequestInterface $request, ResponseInterface $response, \Closure $next) use ($exception) {
-
-			$request = $request->withAttribute(ExceptionsController::ATTR_EXCEPTION, $exception);
-			$response = $this->populateExceptionResponse($response, $exception);
-			$route = $this->createExceptionRoute($request, $exception);
-			/** @var ApplicationInterface $app */
-			$app = $this->getContainer()->get(ApplicationInterface::class);
-			$isDebugMode = $app->getConfig()->get('debug', false);
-
-			$request = $this->preProcessCallable($request, $route);
-			try {
-				$response = call_user_func($route->getCallable(), $request, $response);
-			} catch (Exception $e) {
-				/**
-				 * We have already tried to handle this request with
-				 * the default handler.  Now just return a response
-				 **/
-				$msg = 'An unhandled error occurred.';
-				if ($isDebugMode) $msg .= '  ' . $e->getMessage();
-				$response->getBody()->write($msg);
-
-				return $response;
-			}
-
-			if ($response instanceof ResponseInterface) {
-				return $next($request, $response);
-			}
-
-			return $response;
-		};
+		return $this->exceptionResponse($exception);
 	}
 
 	/**
-	 * Apply the error's status code and any related headers to the response object
-	 *
-	 * @param ResponseInterface $response
-	 * @param Exception $exception
-	 *
-	 * @return ResponseInterface|static
+	 * Normalized a mixed
+	 * @param mixed $result
+	 * @return ResponseInterface
 	 */
-	private function populateExceptionResponse(ResponseInterface $response, Exception $exception)
+	public function normalizeHandlerResponse($result)
 	{
-		/**
-		 * Add error status code and headers to response
-		 */
-		if ($exception instanceof \League\Route\Http\Exception\HttpExceptionInterface) {
-			$response = $response->withStatus($exception->getStatusCode());
+		$httpFactory = $result instanceof ResponseInterface ? null : new HttpFactory();
 
-			foreach ($exception->getHeaders() as $name => $value) {
-				$response = $response->withHeader($name, $value);
-			}
+		if (is_array($result)) {
+			$response = $httpFactory->createResponse();
+			$response = $response->withAddedHeader('Content-type', 'application/json');
+			$response->getBody()->write(json_encode($result));
+		} else if (is_string($result)) {
+			$response = $httpFactory->createResponse();
+			$response->getBody()->write($result);
+		} else if ($result instanceof ViewInterface) {
+			$response = $httpFactory->createResponse();
+			$response->getBody()->write($result->render());
+		} else if ($result instanceof ResponseInterface) {
+			$response = $result;
+		} else {
+			throw new \Exception('Invalid result');
 		}
 
 		return $response;
 	}
 
-	private function createExceptionRoute(ServerRequestInterface $request, Exception $exception)
+	/**
+	 * @inheritdoc
+	 */
+	public function getThrowableHandler(): MiddlewareInterface
 	{
-		$url = new Url($request->getUri());
+		return new class($this) implements MiddlewareInterface
+		{
+			private $strategy;
 
-		$route = new Route();
-		$route->setScheme($url->getScheme());
-		$route->setHost($url->getHost());
-		$route->setMethods([$request->getMethod()]);
-		$route->setPath($url->getPath());
-		$route->setContainer($this->getContainer());
+			/**
+			 *  constructor.
+			 * @param ApplicationStrategy $strategy
+			 */
+			public function __construct(ApplicationStrategy $strategy)
+			{
+				$this->strategy = $strategy;
+			}
 
-		/** @var \WebImage\Application\ApplicationInterface $app */
-		$app = $this->getContainer()->get(\WebImage\Application\ApplicationInterface::class);
-		$config = $app->getConfig();
+			public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+			{
+				try {
+					$response = $handler->handle($request);
+				} catch (\Throwable $exception) {
 
-		$handler = null;
-		foreach($this->getHandlerKeys($exception) as $key) {
-			$key = sprintf('router.handlers.%s', $key);
-			$handler = $config->get($key);
-			if (null !== $handler) $handler = RouteHelper::normalizeHandler($handler);
-		}
+					$route = new Route($request->getMethod(), $request->getUri()->getPath(), ExceptionsController::class . '::exception');
+					$isDebugMode = true;
 
-		if (null === $handler) $handler = $this->getDefaultExceptionHandler();
+					try {
+						$handler = $route->getCallable($this->strategy->getContainer());
 
-		$route->setCallable($handler);
+						if (is_array($handler) && is_object($handler[0])) {
+							if ($handler[0] instanceof ControllerInterface || $handler[0] instanceof AbstractController) { // @TODO for some reason instanceof ControllerInterface returns false, even though AbstractController implements it
 
-		return $route;
-	}
+								$request = $request->withAttribute(ExceptionsController::ATTR_EXCEPTION, $exception);
 
-	private function getHandlerKeys(Exception $exception)
-	{
-		$handlerKeys = ['exception']; // List of keys to look for in config to handle this exception
+								$handler[0]->setRequest($request);
+								$handler[0]->setDispatchedActionName($handler[1]);
 
-		if ($exception instanceof \League\Route\Http\Exception\HttpExceptionInterface) {
-			// Use the status code as a possible handler key value
-			array_unshift($handlerKeys, $exception->getStatusCode());
-		}
+								if ($handler[0] instanceof ExceptionsController) {
+									$handler[0]->setException($exception);
+								}
+							}
+							if ($handler[0] instanceof ContainerAwareInterface) {
+								$handler[0]->setContainer($this->strategy->getContainer());
+							}
+						}
 
-		return $handlerKeys;
-	}
+						$response = $this->strategy->normalizeHandlerResponse($handler($request));
+					} catch (\Throwable $e) {
+						/**
+						 * We have already tried to handle this request with
+						 * the default handler.  Now just return a response
+						 **/
+						$msg = 'An unhandled error occurred.';
+						if ($isDebugMode) $msg .= '  ' . $e->getMessage();
+						$httpFactory = new HttpFactory();
+						$response = $httpFactory->createResponse(500);
+						$response->getBody()->write($msg);
+					}
+				}
 
-	private function getDefaultExceptionHandler()
-	{
-		// ExceptionsController will be pulled from the ServiceManager
-		return RouteHelper::normalizeHandler('ExceptionsController@exception');
+				return $response;
+			}
+		};
 	}
 }

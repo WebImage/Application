@@ -9,8 +9,8 @@ use WebImage\Controllers\ExceptionsController;
 use WebImage\Core\ArrayHelper;
 use WebImage\Http\Response;
 use WebImage\Http\ServerRequest;
-use WebImage\Router\RouteCollection;
-use WebImage\Router\RouteCollectionInterface;
+use WebImage\Router\Router;
+use WebImage\Router\RouterServiceProvider;
 use WebImage\ServiceManager\ServiceManagerConfig;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
 use WebImage\View\Factory as ViewFactory;
@@ -23,10 +23,10 @@ class HttpApplication extends AbstractApplication {
 	public function run()
 	{
 		parent::run();
-		$response = $this->routes()->dispatch(
-			$this->getRequest(),
-			$this->getResponse()
-		);
+
+		$router = $this->routes();
+
+		$response = $router->dispatch($this->getRequest());
 
 		if (!headers_sent()) {
 			// Status response
@@ -57,23 +57,13 @@ class HttpApplication extends AbstractApplication {
 	}
 
 	/**
-	 * Get Response
-	 *
-	 * @return ResponseInterface
-	 */
-	public function getResponse()
-	{
-		return $this->getServiceManager()->get(ResponseInterface::class);
-	}
-
-	/**
 	 * Get route collector
 	 *
-	 * @return RouteCollectionInterface|StackAwareInterface
+	 * @return Router
 	 */
-	public function routes()
+	public function routes(): Router
 	{
-		return $this->getServiceManager()->get(RouteCollectionInterface::class);
+		return $this->getServiceManager()->get(Router::class);
 	}
 
 	/**
@@ -84,11 +74,12 @@ class HttpApplication extends AbstractApplication {
 		return ArrayHelper::merge(parent::getDefaultServiceManagerConfig(), [
 			ServiceManagerConfig::SHARED => [
 				ServerRequestInterface::class => [ServerRequest::class, 'fromGlobals'],
-				ResponseInterface::class => Response::class,
-				RouteCollectionInterface::class => RouteCollection::class,
+//				ResponseInterface::class => Response::class,
+//				Router::class => Router::class
 			],
 			ServiceManagerConfig::PROVIDERS => [
-				ViewFactoryServiceProvider::class
+				ViewFactoryServiceProvider::class,
+				RouterServiceProvider::class
 			],
 			ServiceManagerConfig::INVOKABLES => [
 				'ExceptionsController' => ExceptionsController::class

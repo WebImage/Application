@@ -2,26 +2,30 @@
 
 namespace WebImage\Router;
 
+use League\Route\Route as LeagueRoute;
+use Psr\Container\ContainerInterface;
 use WebImage\Application\ApplicationInterface;
 
-class Route extends \League\Route\Route
+class Route extends LeagueRoute
 {
 	/**
 	 * @inheritdoc
 	 */
-	public function getCallable()
+	public function getCallable(?ContainerInterface $container = null): callable
 	{
-		if (is_string($this->callable)) {
-			list($controller, $action) = array_pad(explode('::', $this->callable, 2), 2, null);
+		$callable = $this->handler;
 
-			if (null === $action) return parent::getCallable();
+		if (is_string($callable)) {
+			list($controller, $action) = array_pad(explode('::', $this->handler, 2), 2, null);
 
-			$controller = $this->getExpandedControllerName($controller);
+			if ($action === null) return parent::getCallable($container);
 
-			$this->callable = sprintf('%s::%s', $controller, $action);
+			$controller = $this->getExpandedControllerName($container, $controller);
+
+			$this->handler = sprintf('%s::%s', $controller, $action);
 		}
 
-		return parent::getCallable();
+		return parent::getCallable($container);
 	}
 
 	/**
@@ -32,9 +36,9 @@ class Route extends \League\Route\Route
 	 * @param string $controller
 	 * @return string
 	 */
-	protected function getExpandedControllerName(string $controller)
+	protected function getExpandedControllerName(ContainerInterface $container, string $controller)
 	{
-		$app = $this->getApplication();
+		$app = $this->getApplication($container);
 		if (null === $app) return $controller;
 
 		if (substr($controller, -10) != 'Controller' && false === strpos($controller, '\\')) {
@@ -46,7 +50,7 @@ class Route extends \League\Route\Route
 			 * Also check to make sure that the expandedName exists, either directly as a class, or in
 			 * a container, before modifying the controller name.
 			 */
-			if (!class_exists($controller) && !$this->getContainer()->has($controller) && (class_exists($expandedName) || $this->getContainer()->has($controller))) {
+			if (!class_exists($controller) && !$container->has($controller) && (class_exists($expandedName) || $container->has($controller))) {
 				$controller = $expandedName;
 			}
 		}
@@ -57,8 +61,8 @@ class Route extends \League\Route\Route
 	/**
 	 * @return ApplicationInterface|null
 	 */
-	protected function getApplication()
+	protected function getApplication(ContainerInterface $container): ?ApplicationInterface
 	{
-		return $this->getContainer()->get(ApplicationInterface::class);
+		return $container->get(ApplicationInterface::class);
 	}
 }
