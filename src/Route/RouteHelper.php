@@ -1,6 +1,6 @@
 <?php
 
-namespace WebImage\Router;
+namespace WebImage\Route;
 
 class RouteHelper {
 	/**

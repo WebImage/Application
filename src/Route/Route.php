@@ -1,6 +1,6 @@
 <?php
 
-namespace WebImage\Router;
+namespace WebImage\Route;
 
 use League\Route\Route as LeagueRoute;
 use Psr\Container\ContainerInterface;

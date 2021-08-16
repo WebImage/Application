@@ -1,6 +1,6 @@
 <?php
 
-namespace WebImage\Router;
+namespace WebImage\Route;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use League\Route\ContainerAwareInterface;
@@ -8,7 +8,7 @@ use League\Route\ContainerAwareTrait;
 use League\Route\Route as LeagueRoute;
 use League\Route\Strategy\StrategyAwareInterface;
 use League\Route\Strategy\StrategyInterface;
-use WebImage\Router\Strategy\ApplicationStrategy;
+use WebImage\Route\Strategy\ApplicationStrategy;
 
 class Router extends \League\Route\Router implements ContainerAwareInterface
 {

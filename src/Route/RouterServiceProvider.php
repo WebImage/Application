@@ -1,6 +1,6 @@
 <?php
 
-namespace WebImage\Router;
+namespace WebImage\Route;
 
 use WebImage\Container\ServiceProvider\AbstractServiceProvider;
 

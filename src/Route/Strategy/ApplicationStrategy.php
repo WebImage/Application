@@ -1,6 +1,6 @@
 <?php
 
-namespace WebImage\Router\Strategy;
+namespace WebImage\Route\Strategy;
 
 //use Exception;
 //use Illuminate\Console\Application;
@@ -21,7 +21,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use WebImage\Controllers\ControllerInterface;
 use WebImage\Controllers\ExceptionsController;
-use WebImage\Router\Route;
+use WebImage\Route\Route;
 use WebImage\View\ViewInterface;
 
 class ApplicationStrategy extends BaseApplicationStrategy implements ContainerAwareInterface {
