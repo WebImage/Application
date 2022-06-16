@@ -110,8 +110,16 @@ class ViewManager {
 			throw new HelperNotFoundException('Missing view helper: ' . $name);
 		}
 
+		$container = $this->factory->getContainer();
 		$service = $this->helpers()->get($name);
-		$helper =  $this->factory->getContainer()->get($service);
+		if ($container->has($service)) {
+			$helper = $container->get($service);
+		} else if (class_exists($service)) {
+			$helper = new $service;
+		} else {
+			$args = implode(', ', array_map(function($arg) { return gettype($arg); }, func_get_args()));
+			throw new HelperNotFoundException(sprintf('Helper "%s(%s)" references an undefined service %s', $name, $args, $service));
+		}
 
 		// Add ViewManager instance
 		if ($helper instanceof ViewManagerAwareInterface) {
