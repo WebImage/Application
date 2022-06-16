@@ -96,7 +96,7 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 	 * @param null|string|bool $masterViewName null to use default; string for path to template; false
 	 * @return ViewInterface
 	 */
-	protected function view(array $vars=array(), $viewKey=null, $masterViewName=null): ?ViewInterface
+	protected function view(array $vars=[], $viewKey=null, $masterViewName=null): ?ViewInterface
 	{
 		if (null !== $viewKey && !is_string($viewKey)) {
 			throw new \InvalidArgumentException('Expecting string for viewKey');
@@ -104,8 +104,8 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 
 		$viewKey = (null === $viewKey) ? $this->getDefaultViewName() : $viewKey;
 		/** @var Factory $factory */
-		$factory = $this->getContainer()->get(Factory::class);
-		$view = $factory->create($viewKey, $vars);
+		$factory = $this->getViewFactory();
+		$view = $factory->create($viewKey, $this->getViewVars($vars));
 
 		if (null === $masterViewName) {
 			$masterViewName = $this->getMasterViewName();
@@ -116,6 +116,21 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 		}
 
 		return $view;
+	}
+
+	/**
+	 * Gives extending controllers the option to extend or modify view vars
+	 * @param array $vars
+	 * @return array
+	 */
+	protected function getViewVars(array $vars=[]): array
+	{
+		return $vars;
+	}
+
+	protected function getViewFactory(): Factory
+	{
+		return $this->getContainer()->get(Factory::class);
 	}
 
 	public function getDispatchedActionName(): string
