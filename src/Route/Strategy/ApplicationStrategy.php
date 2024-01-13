@@ -2,23 +2,16 @@
 
 namespace WebImage\Route\Strategy;
 
-//use Exception;
-//use Illuminate\Console\Application;
 use GuzzleHttp\Psr7\HttpFactory;
-use GuzzleHttp\Psr7\Response;
 use League\Route\ContainerAwareInterface;
 use League\Route\ContainerAwareTrait;
-use League\Container\ContainerAwareInterface as ContainerContainerAwareInterface;
-//use League\Route\Http\Exception\MethodNotAllowedException;
-//use League\Route\Http\Exception\NotFoundException;
-//use League\Route\Route As LeagueRoute;
-use League\Route\Http\Exception\NotFoundException;
 use League\Route\Route as LeagueRoute;
 use League\Route\Strategy\ApplicationStrategy as BaseApplicationStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use WebImage\Controllers\AbstractController;
 use WebImage\Controllers\ControllerInterface;
 use WebImage\Controllers\ExceptionsController;
 use WebImage\Route\Route;
@@ -48,39 +41,49 @@ class ApplicationStrategy extends BaseApplicationStrategy implements ContainerAw
 			}
 		}
 
-		return $this->normalizeHandlerResponse($handler($request, $route->getVars()));
+		return $this->normalizeHandlerResponse($handler($request, $route->getVars()), $handler);
 	}
 
 	/**
 	 * @inheritdoc
 	 */
-	public function getNotFoundDecorator(NotFoundException $exception): MiddlewareInterface
-	{
-		return $this->exceptionResponse($exception);
-	}
+//	public function getNotFoundDecorator(NotFoundException $exception): MiddlewareInterface
+//	{
+//		return $this->exceptionResponse($exception);
+//	}
 
 	/**
 	 * Normalized a mixed
 	 * @param mixed $result
 	 * @return ResponseInterface
 	 */
-	public function normalizeHandlerResponse($result)
+	public function normalizeHandlerResponse($result, $handler): ResponseInterface
 	{
-		$httpFactory = $result instanceof ResponseInterface ? null : new HttpFactory();
+		/**
+		 * Prepare response object
+		 */
+		if ($result instanceof ResponseInterface) {
+			$response = $result;
+		} else {
+			if (is_array($handler) && count($handler) > 0 && is_object($handler[0]) && $handler[0] instanceof ControllerInterface) {
+				$response = $handler[0]->getResponse();
+			} else {
+				$httpFactory = new HttpFactory();
+				$response = $httpFactory->createResponse();
+			}
+		}
 
+		/**
+		 * Set body of response
+		 */
 		if (is_array($result)) {
-			$response = $httpFactory->createResponse();
 			$response = $response->withAddedHeader('Content-type', 'application/json');
 			$response->getBody()->write(json_encode($result));
 		} else if (is_string($result)) {
-			$response = $httpFactory->createResponse();
 			$response->getBody()->write($result);
 		} else if ($result instanceof ViewInterface) {
-			$response = $httpFactory->createResponse();
 			$response->getBody()->write($result->render());
-		} else if ($result instanceof ResponseInterface) {
-			$response = $result;
-		} else {
+		} else if (!($result instanceof ResponseInterface)) {
 			throw new \Exception('Invalid result');
 		}
 
@@ -134,7 +137,7 @@ class ApplicationStrategy extends BaseApplicationStrategy implements ContainerAw
 							}
 						}
 
-						$response = $this->strategy->normalizeHandlerResponse($handler($request));
+						$response = $this->strategy->normalizeHandlerResponse($handler($request), $handler);
 					} catch (\Throwable $e) {
 						/**
 						 * We have already tried to handle this request with
