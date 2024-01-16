@@ -1,25 +1,26 @@
 {
-    "name": "webimage/application",
-    "version": "1.1.0",
-    "description": "Application components",
-    "type": "library",
-    "require": {
-        "webimage/core": "^1.1",
-        "league/route": "^5.1",
-        "guzzlehttp/psr7": "^2.0",
-        "symfony/console": "^4.4"
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Robert Jones II",
-            "email": "rjones@corporatewebimage.com"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "WebImage\\": "src/"
-        }
-    },
-	"minimum-stability": "dev"
+  "name": "webimage/application",
+  "version": "1.1.0",
+  "description": "Application components",
+  "type": "library",
+  "require": {
+    "webimage/core": "^1.1",
+    "league/route": "^5.1",
+    "guzzlehttp/psr7": "^2.0",
+    "symfony/console": "^4.4",
+    "ext-json": "*"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Robert Jones II",
+      "email": "rjones@corporatewebimage.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "WebImage\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
 }
