@@ -7,7 +7,7 @@
     "webimage/core": "^1.2.1",
     "league/route": "^5.1",
     "guzzlehttp/psr7": "^2.0",
-    "symfony/console": "^4.4",
+    "symfony/console": "^5.4",
     "ext-json": "*"
   },
   "license": "MIT",
