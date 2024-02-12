@@ -1,6 +1,5 @@
 {
   "name": "webimage/application",
-  "version": "1.2.1",
   "description": "Application components",
   "type": "library",
   "require": {
