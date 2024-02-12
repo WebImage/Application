@@ -1,10 +1,10 @@
 {
   "name": "webimage/application",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Application components",
   "type": "library",
   "require": {
-    "webimage/core": "^1.1",
+    "webimage/core": "^1.2.1",
     "league/route": "^5.1",
     "guzzlehttp/psr7": "^2.0",
     "symfony/console": "^4.4",
@@ -21,6 +21,5 @@
     "psr-4": {
       "WebImage\\": "src/"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }
