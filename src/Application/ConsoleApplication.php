@@ -11,13 +11,16 @@ class ConsoleApplication extends AbstractApplication
 {
 	const CONFIG_CONSOLE = 'console';
 	const CONFIG_COMMANDS = 'commands';
-	
+	const CONFIG_DEFAULT_COMMAND = 'defaultCommand';
+	const CONFIG_IS_SINGLE_COMMAND = 'isSingleCommand';
+
 	public function run()
 	{
 		parent::run();
 
 		$app = $this->createSymfonyConsoleApplication();
 		$this->loadCommands($app);
+		$this->setupDefaultCommand($app);
 		$app->run();
 	}
 
@@ -35,12 +38,12 @@ class ConsoleApplication extends AbstractApplication
 	{
 		return 'UNDEFINED';
 	}
-	
+
 	protected function loadCommands(SymfonyConsoleApplication $app)
 	{
-		$config = $this->getConfig()->has(self::CONFIG_CONSOLE) ? $this->getConfig()->get(self::CONFIG_CONSOLE) : new Config();
-		$commands =$config->get(self::CONFIG_COMMANDS, []);
-		$sm = $this->getServiceManager();
+		$config   = $this->getConfig()->has(self::CONFIG_CONSOLE) ? $this->getConfig()->get(self::CONFIG_CONSOLE) : new Config();
+		$commands = $config->get(self::CONFIG_COMMANDS, []);
+		$sm       = $this->getServiceManager();
 
 		foreach($commands as $commandName => $class) {
 
@@ -53,5 +56,24 @@ class ConsoleApplication extends AbstractApplication
 
 			$app->add($command);
 		}
-	}	
+	}
+
+	/**
+	 * Sets the default command
+	 *
+	 * @param SymfonyConsoleApplication $app
+	 */
+	protected function setupDefaultCommand(SymfonyConsoleApplication $app)
+	{
+		if (!$this->getConfig()->has(self::CONFIG_CONSOLE)) return;
+
+		$config          = $this->getConfig()->get(self::CONFIG_CONSOLE);
+		$defaultCommand  = $config->get(self::CONFIG_DEFAULT_COMMAND);
+		$isSingleCommand = $config->get(self::CONFIG_IS_SINGLE_COMMAND, false);
+
+		if ($defaultCommand === null) return;
+
+		$command = $app->find($defaultCommand);
+		$app->setDefaultCommand($command->getName(), $isSingleCommand);
+	}
 }
