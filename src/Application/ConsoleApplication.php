@@ -46,7 +46,7 @@ class ConsoleApplication extends AbstractApplication
 
 			/** @var Command $command */
 			$command = $sm->has($class) ? $sm->get($class) : new $class();
-			$command->setName($commandName);
+			if (!is_numeric($commandName)) $command->setName($commandName);
 
 			// Assign ContainerManager if the command supports it
 			if ($command instanceof ContainerAwareInterface) $command->setContainer($this->getServiceManager());
