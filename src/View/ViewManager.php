@@ -6,7 +6,7 @@ use WebImage\Core\Dictionary;
 
 class ViewManager {
 	/**
-	 * @var Factory
+	 * @var ViewFactory
 	 */
 	private $factory;
 	/** @var string The name of the region currently being worked on */
@@ -17,9 +17,9 @@ class ViewManager {
 
 	/**
 	 * ViewManager constructor.
-	 * @param Factory $factory
+	 * @param ViewFactory $factory
 	 */
-	public function __construct(Factory $factory)
+	public function __construct(ViewFactory $factory)
 	{
 		$this->factory = $factory;
 		$this->helpers = new Dictionary();
@@ -129,7 +129,7 @@ class ViewManager {
 		return $helper;
 	}
 
-	public function getFactory(): Factory
+	public function getFactory(): ViewFactory
 	{
 		return $this->factory;
 	}

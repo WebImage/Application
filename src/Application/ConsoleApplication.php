@@ -6,6 +6,7 @@ use League\Container\ContainerAwareInterface;
 use Symfony\Component\Console\Application as SymfonyConsoleApplication;
 use Symfony\Component\Console\Command\Command;
 use WebImage\Config\Config;
+use WebImage\ServiceManager\ServiceManagerInterface;
 
 class ConsoleApplication extends AbstractApplication
 {
@@ -13,7 +14,8 @@ class ConsoleApplication extends AbstractApplication
 	const CONFIG_COMMANDS = 'commands';
 	const CONFIG_DEFAULT_COMMAND = 'defaultCommand';
 	const CONFIG_IS_SINGLE_COMMAND = 'isSingleCommand';
-
+	const CONFIG_APP_NAME = 'applicationName';
+	const CONFIG_APP_VERSION = 'applicationVersion';
 	public function run()
 	{
 		parent::run();
@@ -31,12 +33,12 @@ class ConsoleApplication extends AbstractApplication
 
 	protected function getSymfonyApplicationName(): string
 	{
-		return 'UNDEFINED';
+		return $this->getConfig()->get(self::CONFIG_APP_NAME, 'Console');
 	}
 
 	protected function getSymfonyApplicationVersion(): string
 	{
-		return 'UNDEFINED';
+		return $this->getConfig()->get(self::CONFIG_APP_VERSION, '1.0.0');
 	}
 
 	protected function loadCommands(SymfonyConsoleApplication $app)
@@ -75,5 +77,13 @@ class ConsoleApplication extends AbstractApplication
 
 		$command = $app->find($defaultCommand);
 		$app->setDefaultCommand($command->getName(), $isSingleCommand);
+	}
+
+	public static function create(Config $config = null, string $applicationName = null, string $applicationVersion = null): ApplicationInterface
+	{
+		if ($applicationName !== null) $config->set(self::CONFIG_APP_NAME, $applicationName);
+		if ($applicationVersion !== null) $config->set(self::CONFIG_APP_VERSION, $applicationVersion);
+
+		return parent::create($config);
 	}
 }

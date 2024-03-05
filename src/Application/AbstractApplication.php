@@ -117,7 +117,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	 * @param Config $config
 	 * @return static
 	 */
-	public static function create(Config $config=null)
+	public static function create(Config $config=null): ApplicationInterface
 	{
 		$config = static::mergeConfigWithDefaults($config);
 

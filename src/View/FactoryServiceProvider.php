@@ -18,7 +18,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	const CONFIG_VARIATIONS = 'variations';
 
 	protected $provides = [
-		Factory::class,
+		ViewFactory::class,
 		ViewFinderInterface::class,
 		EngineResolver::class,
 		PhpEngine::class
@@ -48,7 +48,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	{
 		/** @var DefinitionInterface $def */
 		$def = $this->getContainer()
-			->addShared(Factory::class, Factory::class)
+			->addShared(ViewFactory::class, ViewFactory::class)
 			->addArguments([
 				ViewFinderInterface::class,
 				EngineResolver::class

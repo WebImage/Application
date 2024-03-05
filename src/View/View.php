@@ -5,6 +5,7 @@ namespace WebImage\View;
 use ArrayAccess;
 use League\Plates\Engine;
 use Symfony\Component\Console\Exception\RuntimeException;
+use WebImage\Paths\PathManager;
 use WebImage\View\Engines\EngineInterface;
 
 class View implements ViewInterface, ArrayAccess
@@ -36,8 +37,14 @@ class View implements ViewInterface, ArrayAccess
 		$this->file = $file;
 		$this->data = $data;
 		$this->engine = $engine;
-		$this->manager = $manager ?: new ViewManager; // @todo new ViewManager will fail without engine constructor
+		$this->manager = $manager ?: $this->createViewManager();
 		$this->viewName = $viewName;
+	}
+
+	private function createViewManager(): ViewManager
+	{
+		$factory = new ViewFactory(new FileViewFinder(new PathManager()), new EngineResolver());
+		return new ViewManager($factory);
 	}
 
 	/**

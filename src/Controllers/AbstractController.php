@@ -11,7 +11,7 @@ use WebImage\Application\ApplicationInterface;
 use WebImage\Config\Config;
 use WebImage\Core\Dictionary;
 use WebImage\String\Helper;
-use WebImage\View\Factory;
+use WebImage\View\ViewFactory;
 use WebImage\View\ViewInterface;
 
 class AbstractController implements ControllerInterface, ContainerAwareInterface {
@@ -103,7 +103,7 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 		}
 
 		$viewKey = (null === $viewKey) ? $this->getDefaultViewName() : $viewKey;
-		/** @var Factory $factory */
+		/** @var ViewFactory $factory */
 		$factory = $this->getViewFactory();
 		$view = $factory->create($viewKey, $this->getViewVars($vars));
 
@@ -128,9 +128,9 @@ class AbstractController implements ControllerInterface, ContainerAwareInterface
 		return $vars;
 	}
 
-	protected function getViewFactory(): Factory
+	protected function getViewFactory(): ViewFactory
 	{
-		return $this->getContainer()->get(Factory::class);
+		return $this->getContainer()->get(ViewFactory::class);
 	}
 
 	public function getDispatchedActionName(): string
