@@ -41,7 +41,25 @@ abstract class AbstractApplication implements ApplicationInterface
 	 * @inheritdoc
 	 */
 	public function run() {
+		$this->autoload();
 		$this->plugins->load($this);
+	}
+
+	private function autoload()
+	{
+		$autoload = $this->getConfig()->get('app.autoload', []);
+		$loader = new AutoLoader();
+		foreach($autoload as $class => $path) {
+			$paths = is_array($path) ? $path : [$path];
+			foreach($paths as $subPath) {
+				if (substr($subPath, 0, 1) != '/') {
+					$subPath = $this->getProjectPath() . '/' . $subPath;
+				}
+
+				$loader->map($class, $subPath);
+			}
+		}
+		$loader->register();
 	}
 
 	/**
@@ -127,9 +145,7 @@ abstract class AbstractApplication implements ApplicationInterface
 			new ServiceManagerConfig($serviceManagerConfig)
 		);
 
-		$app = new static($config, $serviceManager);
-
-		return $app;
+		return new static($config, $serviceManager);
 	}
 
 	/**
@@ -188,7 +204,10 @@ abstract class AbstractApplication implements ApplicationInterface
 	protected static function getDefaultConfig()
 	{
 		return [
-			'app' => ['namespace' => 'App'],
+			'app' => [
+				'namespace' => 'App',
+				'autoload' => ['App' => 'src']
+			],
 			self::CONFIG_SERVICE_MANAGER => static::getDefaultServiceManagerConfig()
 		];
 	}
