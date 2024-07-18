@@ -162,7 +162,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return PathManager
 	 */
-	protected function getViewPathManager(Config $config)
+	protected function getViewPathManager(Config $config): PathManager
 	{
 		/** @var PathManager $pathManager */
 		$pathManager = $config['usePathManager'] === false ? new PathManager() : $this->getContainer()->get(PathManagerInterface::class);
@@ -192,7 +192,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return Config
 	 */
-	protected function getViewConfig()
+	protected function getViewConfig(): Config
 	{
 		/** @var ApplicationInterface $app */
 		$app = $this->getContainer()->get(ApplicationInterface::class);
@@ -205,7 +205,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 		return $config;
 	}
 
-	protected function getDefaultViewConfig()
+	protected function getDefaultViewConfig(): Config
 	{
 		return new Config([
 			'extensions' => ['php' => 'php'], // extension => engineKey
