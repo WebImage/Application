@@ -13,7 +13,7 @@ use WebImage\Route\Router;
 use WebImage\Route\RouterServiceProvider;
 use WebImage\ServiceManager\ServiceManagerConfig;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
-use WebImage\View\ViewFactory as ViewFactory;
+use WebImage\View\ViewFactory;
 use WebImage\View\FactoryServiceProvider as ViewFactoryServiceProvider;
 
 class HttpApplication extends AbstractApplication {
