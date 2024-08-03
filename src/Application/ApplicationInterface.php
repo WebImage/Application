@@ -44,7 +44,14 @@ interface ApplicationInterface extends ServiceManagerAwareInterface {
 	 *
 	 * @return mixed
 	 */
-	public function getProjectPath();
+	public function getProjectPath(): string;
+
+	/**
+	 * Set the project path to use, where all config, src, etc. directories reside
+	 * @param string $path
+	 * @return void
+	 */
+	public function setProjectPath(string $path): void;
 
 	/**
 	 * Get the root path for the core (this) library

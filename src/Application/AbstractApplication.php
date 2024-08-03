@@ -154,7 +154,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	 * @author Fabien Potencier <fabien@symfony.com>
 	 * @return string The project root dir
 	 */
-	public function getProjectPath()
+	public function getProjectPath(): string
 	{
 		if (null === $this->projectPath) {
 			$dir = $rootDir = $this->getCorePath();
@@ -169,6 +169,11 @@ abstract class AbstractApplication implements ApplicationInterface
 		}
 
 		return $this->projectPath;
+	}
+
+	public function setProjectPath(string $path): void
+	{
+		$this->projectPath = $path;
 	}
 
 	public function getCorePath()
