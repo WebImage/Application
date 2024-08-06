@@ -15,6 +15,7 @@ use WebImage\Route\Router;
 use WebImage\Route\RouterServiceProvider;
 use WebImage\ServiceManager\ServiceManagerConfig;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
+use WebImage\Session\SessionServiceProvider;
 use WebImage\View\ViewFactory;
 use WebImage\View\FactoryServiceProvider as ViewFactoryServiceProvider;
 
@@ -91,7 +92,8 @@ class HttpApplication extends AbstractApplication {
 			],
 			ServiceManagerConfigInterface::PROVIDERS => [
 				ViewFactoryServiceProvider::class,
-				RouterServiceProvider::class
+				RouterServiceProvider::class,
+				SessionServiceProvider::class
 			],
 			ServiceManagerConfigInterface::INVOKABLES => [
 				'ExceptionsController' => ExceptionsController::class
