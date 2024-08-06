@@ -17,7 +17,7 @@ class FactoryServiceProvider extends AbstractServiceProvider {
 	const CONFIG_ENGINES = 'engines';
 	const CONFIG_VARIATIONS = 'variations';
 
-	protected $provides = [
+	protected array $provides = [
 		ViewFactory::class,
 		ViewFinderInterface::class,
 		EngineResolver::class,

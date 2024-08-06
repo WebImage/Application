@@ -3,6 +3,8 @@
 namespace WebImage\Application;
 
 use League\Route\Middleware\StackAwareInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use WebImage\Controllers\ExceptionsController;
@@ -24,7 +26,13 @@ class HttpApplication extends AbstractApplication {
 	{
 		parent::run();
 
-		$router = $this->routes();
+		try {
+			$router = $this->routes();
+		} catch (NotFoundExceptionInterface $e) {
+			die('Router failed');
+		} catch (ContainerExceptionInterface $e) {
+			die('Container failed');
+		}
 
 		$response = $router->dispatch($this->getRequest());
 
@@ -50,8 +58,10 @@ class HttpApplication extends AbstractApplication {
 	 * Get Request
 	 *
 	 * @return ServerRequestInterface
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
-	public function getRequest()
+	public function getRequest(): ServerRequestInterface
 	{
 		return $this->getServiceManager()->get(ServerRequestInterface::class);
 	}
@@ -60,6 +70,8 @@ class HttpApplication extends AbstractApplication {
 	 * Get route collector
 	 *
 	 * @return Router
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
 	public function routes(): Router
 	{
@@ -72,16 +84,16 @@ class HttpApplication extends AbstractApplication {
 	protected static function getDefaultServiceManagerConfig()
 	{
 		return ArrayHelper::merge(parent::getDefaultServiceManagerConfig(), [
-			ServiceManagerConfig::SHARED => [
+			ServiceManagerConfigInterface::SHARED => [
 				ServerRequestInterface::class => [ServerRequest::class, 'fromGlobals'],
 //				ResponseInterface::class => Response::class,
 //				Router::class => Router::class
 			],
-			ServiceManagerConfig::PROVIDERS => [
+			ServiceManagerConfigInterface::PROVIDERS => [
 				ViewFactoryServiceProvider::class,
 				RouterServiceProvider::class
 			],
-			ServiceManagerConfig::INVOKABLES => [
+			ServiceManagerConfigInterface::INVOKABLES => [
 				'ExceptionsController' => ExceptionsController::class
 			]
 //			ServiceManagerConfig::INFLECTORS => [
@@ -95,7 +107,7 @@ class HttpApplication extends AbstractApplication {
 		]);
 	}
 
-	protected static function getDefaultConfig()
+	protected static function getDefaultConfig(): array
 	{
 		return array_merge_recursive(parent::getDefaultConfig(), [
 			'app' => ['controllers' => ['namespace' => 'App\\Controllers']],

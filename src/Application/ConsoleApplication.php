@@ -2,6 +2,7 @@
 
 namespace WebImage\Application;
 
+use Exception;
 use League\Container\ContainerAwareInterface;
 use Symfony\Component\Console\Application as SymfonyConsoleApplication;
 use Symfony\Component\Console\Command\Command;
@@ -16,6 +17,10 @@ class ConsoleApplication extends AbstractApplication
 	const CONFIG_IS_SINGLE_COMMAND = 'isSingleCommand';
 	const CONFIG_APP_NAME = 'applicationName';
 	const CONFIG_APP_VERSION = 'applicationVersion';
+
+	/**
+	 * @throws Exception
+	 */
 	public function run()
 	{
 		parent::run();

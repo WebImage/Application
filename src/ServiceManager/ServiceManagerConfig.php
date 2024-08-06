@@ -9,6 +9,7 @@ class ServiceManagerConfig extends Config implements ServiceManagerConfigInterfa
 {
 	public function __construct(Config $config = null)
 	{
+		parent::__construct([]);
 		if ($config instanceof Config) {
 			$this->merge($config);
 		}

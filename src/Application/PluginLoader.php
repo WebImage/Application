@@ -13,28 +13,22 @@ use WebImage\Core\Dictionary;
 class PluginLoader
 {
 	/**
-	 * The base path from which relative paths will be appended
-	 * @var string
-	 */
-	private $basePluginDir;
-	/**
 	 * Plugins that have been registered
 	 *
 	 * @var Dictionary
 	 */
-	private $registered;
+	private Dictionary $registered;
 	/**
 	 * The plugins that have been loaded
 	 * @var string[] Plugin IDs that have already been loaded
 	 */
-	private $loaded = [];
+	private array $loaded = [];
 
 	/**
 	 * PluginLoader constructor.
 	 */
-	public function __construct($basePluginDir)
+	public function __construct()
 	{
-		$this->basePluginDir = rtrim($basePluginDir, '/');
 		$this->registered = new Dictionary();
 	}
 
@@ -74,7 +68,7 @@ class PluginLoader
 	 *
 	 * @return array [pluginId] => plugin
 	 */
-	private function getUnloadedPlugins()
+	private function getUnloadedPlugins(): array
 	{
 		$plugins = [];
 

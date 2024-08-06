@@ -29,8 +29,8 @@ abstract class AbstractApplication implements ApplicationInterface
 	 */
 	public function __construct(Config $config, ServiceManagerInterface $serviceManager)
 	{
-		$this->registerPlugins($config);
 		$this->setConfig($config);
+		$this->registerPlugins($config);
 		$this->setServiceManager($serviceManager);
 
 		// Register this app instance with the service manager
@@ -114,15 +114,14 @@ abstract class AbstractApplication implements ApplicationInterface
 	 * Register plugins from config
 	 * @param Config $config
 	 */
-	private function registerPlugins(Config $config)
+	private function registerPlugins()
 	{
 		/**
 		 * @var string[] $plugins
 		 */
-		$plugins = $config->get('plugins', []);
+		$plugins = $this->getConfig()->get('plugins', []);
 
-		$this->plugins = new PluginLoader($this->getProjectPath());
-
+		$this->plugins = new PluginLoader();
 
 		foreach($plugins as $pluginClass) {
 			$this->registerPlugin(new $pluginClass);
@@ -157,18 +156,40 @@ abstract class AbstractApplication implements ApplicationInterface
 	public function getProjectPath(): string
 	{
 		if (null === $this->projectPath) {
-			$dir = $rootDir = $this->getCorePath();
+			$projectPath = $this->getProjectPathFromConfig();
+			if ($projectPath === null) $projectPath = $this->getProjectPathFromComposer();
+			if ($projectPath === null) $projectPath = $this->getCorePath();
 
-			$composerFiles = [];
-			while ($dir !== dirname($dir)) {
-				if (file_exists($dir . '/composer.json')) $composerFiles[] = $dir;
-				$dir = dirname($dir);
-			}
-
-			$this->projectPath = count($composerFiles) == 0 ? $rootDir : array_pop($composerFiles) . '/app';
+			$this->projectPath = $projectPath;
 		}
 
 		return $this->projectPath;
+	}
+
+	/**
+	 * Check if app.path exists in config
+	 * @return string|null
+	 */
+	private function getProjectPathFromConfig(): ?string
+	{
+		return $this->getConfig()->get('app.path');
+	}
+
+	/**
+	 * Iterate up through parent directories to find composer.json path
+	 * @return string|null
+	 */
+	private function getProjectPathFromComposer(): ?string
+	{
+		$dir = $this->getCorePath();
+
+		$composerFiles = [];
+		while ($dir !== dirname($dir)) {
+			if (file_exists($dir . '/composer.json')) $composerFiles[] = $dir;
+			$dir = dirname($dir);
+		}
+
+		return count($composerFiles) == 0 ? null : array_pop($composerFiles) . '/app';
 	}
 
 	public function setProjectPath(string $path): void
@@ -190,7 +211,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	 * @param Config $appConfig
 	 * @return Config
 	 */
-	private static function mergeConfigWithDefaults(Config $appConfig=null)
+	private static function mergeConfigWithDefaults(Config $appConfig=null): Config
 	{
 		$config = new Config(static::getDefaultConfig());
 
@@ -206,7 +227,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	 *
 	 * @return array
 	 */
-	protected static function getDefaultConfig()
+	protected static function getDefaultConfig(): array
 	{
 		return [
 			'app' => [
