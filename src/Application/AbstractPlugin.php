@@ -12,15 +12,15 @@ abstract class AbstractPlugin implements PluginInterface
 	 * Whether ::install() has already been run
 	 * @var bool
 	 */
-	private $installRan = false;
+	private bool $installRan = false;
 	/**
-	 * @var string
+	 * @property string
 	 */
-	private $pluginPath;
+	private ?string $pluginPath = null;
 	/**
-	 * @var PluginManifest
+	 * @property PluginManifest
 	 */
-	private $manifest;
+	private ?PluginManifest $manifest = null;
 
 	/**
 	 * Get the root plugin path
@@ -28,7 +28,7 @@ abstract class AbstractPlugin implements PluginInterface
 	 *
 	 * @return string
 	 */
-	public function getPluginPath()
+	public function getPluginPath(): string
 	{
 		if (null === $this->pluginPath) {
 			$r = new \ReflectionObject($this);
@@ -49,7 +49,7 @@ abstract class AbstractPlugin implements PluginInterface
 	/**
 	 * @inheritdoc
 	 */
-	public function load(ApplicationInterface $app)
+	public function load(ApplicationInterface $app): void
 	{
 		$config = $this->getConfig();
 
@@ -71,7 +71,7 @@ abstract class AbstractPlugin implements PluginInterface
 	/**
 	 * @inheritdoc
 	 */
-	public function install(ApplicationInterface $app)
+	public function install(ApplicationInterface $app): void
 	{
 		if ($this->installRan) throw new \RuntimeException('Install has already been run for ' . $this->getManifest()->getId());
 		// Mark that install has been run to help prevent it from being run multiple times on the same pass
@@ -81,16 +81,17 @@ abstract class AbstractPlugin implements PluginInterface
 	/**
 	 * @inheritdoc
 	 */
-	public function uninstall(ApplicationInterface $app)
+	public function uninstall(ApplicationInterface $app): void
 	{
 	}
 
 	/**
 	 * @return Config|null
 	 */
-	protected function getConfig() {
+	protected function getConfig(): ?Config
+	{
 		$configPath = $this->getManifest()->getRoot() . '/config/config.php';
-		if (!file_exists($configPath)) return;
+		if (!file_exists($configPath)) return null;
 
 		$config = require($configPath);
 		if (!is_array($config)) throw new \RuntimeException($configPath . ' should return an array');
@@ -98,7 +99,7 @@ abstract class AbstractPlugin implements PluginInterface
 		return new Config($config);
 	}
 
-	public function getManifest()
+	public function getManifest(): PluginManifest
 	{
 		if (null === $this->manifest) $this->initManifest();
 

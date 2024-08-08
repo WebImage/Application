@@ -14,25 +14,25 @@ interface PluginInterface
 	 *
 	 * @param ApplicationInterface $app
 	 *
-	 * @return null
+	 * @return void
 	 */
-	public function load(ApplicationInterface $app);
+	public function load(ApplicationInterface $app): void;
 
 	/**
 	 * Perform any required steps to install a plugin
 	 *
 	 * @param ApplicationInterface $app
 	 *
-	 * @return null
+	 * @return void
 	 */
-	public function install(ApplicationInterface $app);
+	public function install(ApplicationInterface $app): void;
 
 	/**
 	 * Perform any required steps to reverse the installation process
 	 *
 	 * @param ApplicationInterface $app
 	 *
-	 * @return mixed
+	 * @return void
 	 */
-	public function uninstall(ApplicationInterface $app);
+	public function uninstall(ApplicationInterface $app): void;
 }
