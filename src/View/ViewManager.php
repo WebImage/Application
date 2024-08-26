@@ -2,6 +2,7 @@
 
 namespace WebImage\View;
 
+use League\Container\ContainerAwareInterface;
 use WebImage\Core\Dictionary;
 
 class ViewManager {
@@ -124,6 +125,10 @@ class ViewManager {
 		// Add ViewManager instance
 		if ($helper instanceof ViewManagerAwareInterface) {
 			$helper->setViewManager($this);
+		}
+		// Add Container
+		if ($helper instanceof ContainerAwareInterface) {
+			$helper->setContainer($container);
 		}
 
 		return $helper;
