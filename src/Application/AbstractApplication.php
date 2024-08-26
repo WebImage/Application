@@ -7,6 +7,7 @@ use WebImage\Core\Dictionary;
 use WebImage\Event\EventServiceProvider;
 use WebImage\Paths\PathManagerServiceProvider;
 use WebImage\ServiceManager\ServiceManager;
+use WebImage\ServiceManager\ServiceManagerConfigInterface;
 use WebImage\ServiceManager\ServiceManagerInterface;
 use WebImage\ServiceManager\ServiceManagerAwareTrait;
 use WebImage\ServiceManager\ServiceManagerConfig;
@@ -16,11 +17,11 @@ abstract class AbstractApplication implements ApplicationInterface
 	use ServiceManagerAwareTrait;
 
 	/** @var Config $config */
-	private $config;
+	private Config $config;
 	/** @var PluginLoader $plugins */
-	private $plugins;
-	/** @var String $projectPath The path to the project home files */
-	private $projectPath;
+	private PluginLoader $plugins;
+	/** @var ?string $projectPath The path to the project home files */
+	private ?string $projectPath = null;
 	/**
 	 * AbstractApplication constructor.
 	 *
@@ -42,7 +43,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	 */
 	public function run() {
 		$this->autoload();
-		$this->plugins->load($this);
+		$this->plugins->init($this);
 	}
 
 	private function autoload()
@@ -81,7 +82,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	/**
 	 * @return Config
 	 */
-	public function getConfig()
+	public function getConfig(): Config
 	{
 		return $this->config;
 	}
@@ -97,7 +98,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	/**
 	 * @inheritdoc
 	 */
-	public function getServiceManager()
+	public function getServiceManager(): ServiceManagerInterface
 	{
 		return $this->serviceManager;
 	}
@@ -112,7 +113,6 @@ abstract class AbstractApplication implements ApplicationInterface
 
 	/**
 	 * Register plugins from config
-	 * @param Config $config
 	 */
 	private function registerPlugins()
 	{
@@ -131,7 +131,7 @@ abstract class AbstractApplication implements ApplicationInterface
 	/**
 	 * Create a fully executable application
 	 *
-	 * @param Config $config
+	 * @param Config|null $config
 	 * @return static
 	 */
 	public static function create(Config $config=null): ApplicationInterface
@@ -202,13 +202,13 @@ abstract class AbstractApplication implements ApplicationInterface
 //		$r = new \ReflectionObject($this);
 //		return dirname(dirname(dirname($r->getFileName())));
 
-		return dirname(dirname(dirname(__FILE__)));
+		return dirname(__FILE__, 3);
 	}
 
 	/**
 	 * Merge the provided config with defaults (overwrites defaults)
 	 *
-	 * @param Config $appConfig
+	 * @param Config|null $appConfig
 	 * @return Config
 	 */
 	private static function mergeConfigWithDefaults(Config $appConfig=null): Config
@@ -243,10 +243,10 @@ abstract class AbstractApplication implements ApplicationInterface
 	 *
 	 * @return array
 	 */
-	protected static function getDefaultServiceManagerConfig()
+	protected static function getDefaultServiceManagerConfig(): array
 	{
 		return [
-			ServiceManagerConfig::PROVIDERS => [
+			ServiceManagerConfigInterface::PROVIDERS => [
 				PathManagerServiceProvider::class,
 				EventServiceProvider::class
 			]

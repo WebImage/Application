@@ -2,7 +2,6 @@
 
 namespace WebImage\Application;
 
-use League\Route\Middleware\StackAwareInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -26,23 +25,20 @@ class HttpApplication extends AbstractApplication {
 	public function run()
 	{
 		parent::run();
+		$this->sendResponse();
+	}
 
-		try {
-			$router = $this->routes();
-		} catch (NotFoundExceptionInterface $e) {
-			die('Router failed');
-		} catch (ContainerExceptionInterface $e) {
-			die('Container failed');
-		}
-
+	private function sendResponse(): void
+	{
+		$router = $this->routes();
 		$response = $router->dispatch($this->getRequest());
 
 		if (!headers_sent()) {
 			// Status response
 			header(sprintf('HTTP/%s %s %s',
-				$response->getProtocolVersion(),
-				$response->getStatusCode(),
-				$response->getReasonPhrase())
+						   $response->getProtocolVersion(),
+						   $response->getStatusCode(),
+						   $response->getReasonPhrase())
 			);
 			// Headers
 			foreach($response->getHeaders() as $header => $values) {
@@ -71,18 +67,24 @@ class HttpApplication extends AbstractApplication {
 	 * Get route collector
 	 *
 	 * @return Router
-	 * @throws ContainerExceptionInterface
-	 * @throws NotFoundExceptionInterface
 	 */
 	public function routes(): Router
 	{
-		return $this->getServiceManager()->get(Router::class);
+		try {
+			$router = $this->getServiceManager()->get(Router::class);
+		} catch (NotFoundExceptionInterface $e) {
+			die('Router failed');
+		} catch (ContainerExceptionInterface $e) {
+			die('Container failed');
+		}
+
+		return $router;
 	}
 
 	/**
 	 * @inheritdoc
 	 */
-	protected static function getDefaultServiceManagerConfig()
+	protected static function getDefaultServiceManagerConfig(): array
 	{
 		return ArrayHelper::merge(parent::getDefaultServiceManagerConfig(), [
 			ServiceManagerConfigInterface::SHARED => [

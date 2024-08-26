@@ -43,7 +43,7 @@ class PluginLoader
 		$this->registered->set($id, $plugin);
 	}
 
-	public function load(ApplicationInterface $app)
+	public function init(ApplicationInterface $app)
 	{
 		/**
 		 * Continue running until all registered plugins have been loaded
@@ -56,7 +56,7 @@ class PluginLoader
 			 */
 			foreach ($plugins as $pluginId => $plugin) {
 				$this->verifyRequirements($plugin);
-				$plugin->load($app);
+				$plugin->init($app);
 				$this->loaded[] = $pluginId;
 				$app->getServiceManager()->addShared($pluginId, $plugin);
 			}

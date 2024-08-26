@@ -49,7 +49,7 @@ abstract class AbstractPlugin implements PluginInterface
 	/**
 	 * @inheritdoc
 	 */
-	public function load(ApplicationInterface $app): void
+	public function init(ApplicationInterface $app): void
 	{
 		$config = $this->getConfig();
 
@@ -66,7 +66,11 @@ abstract class AbstractPlugin implements PluginInterface
 				$serviceConfig->configureServiceManager($app->getServiceManager());
 			}
 		}
+
+		$this->load($app);
 	}
+
+	abstract protected function load(ApplicationInterface $app): void;
 
 	/**
 	 * @inheritdoc

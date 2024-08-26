@@ -7,7 +7,7 @@ interface PluginInterface
 	/**
 	 * @return PluginManifest
 	 */
-	public function getManifest();
+	public function getManifest(): PluginManifest;
 
 	/**
 	 * Do all work required to make this plugin usable
@@ -16,7 +16,7 @@ interface PluginInterface
 	 *
 	 * @return void
 	 */
-	public function load(ApplicationInterface $app): void;
+	public function init(ApplicationInterface $app): void;
 
 	/**
 	 * Perform any required steps to install a plugin
