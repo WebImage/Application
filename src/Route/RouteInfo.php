@@ -6,10 +6,11 @@ use WebImage\Core\ArrayHelper;
 
 class RouteInfo
 {
-	private string $method;
-	private string $path;
-	private string $handler;
-	private array  $middlewares = [];
+	private string  $method;
+	private string  $path;
+	private string  $handler;
+	private array   $middlewares = [];
+	private ?string $name;
 
 	/**
 	 * @param string $method
@@ -17,13 +18,14 @@ class RouteInfo
 	 * @param string $handler
 	 * @param array $middlewares
 	 */
-	public function __construct(string $method, string $path, string $handler, array $middlewares)
+	public function __construct(string $method, string $path, string $handler, array $middlewares, string $name = null)
 	{
 		ArrayHelper::assertItemTypes($middlewares, 'string');
 		$this->method      = $method;
 		$this->path        = $path;
 		$this->handler     = $handler;
 		$this->middlewares = $middlewares;
+		$this->name        = $name;
 	}
 
 	public function getMethod(): string
@@ -44,5 +46,10 @@ class RouteInfo
 	public function getMiddlewares(): array
 	{
 		return $this->middlewares;
+	}
+
+	public function getName(): ?string
+	{
+		return $this->name;
 	}
 }

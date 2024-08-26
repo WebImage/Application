@@ -115,6 +115,7 @@ class HttpApplication extends AbstractApplication {
 	{
 		return array_merge_recursive(parent::getDefaultConfig(), [
 			'app' => ['controllers' => ['namespace' => 'App\\Controllers']],
+			'views' => ['helpers' => ['namedRoute' => \WebImage\View\Helpers\NamedRouteHelper::class]],
 		]);
 	}
 }

@@ -36,6 +36,12 @@ class ArrayRouteLoader implements RouteLoaderInterface
 				if (is_string($routeData)) {
 					list($method, $path, $handler) = [$mountPoint, $prefix, $routeData];
 					$routes->add(new RouteInfo($method, $path, $handler, $middlewares));
+				} else if (is_array($routeData) && ArrayHelper::isAssociative($routeData, true)) {
+					ArrayHelper::assertKeys($routeData, $pathHint . '[' . $mountPoint . ']', ['handler'], ['name']);
+					$handler = ArrayHelper::get($routeData, 'handler');
+					$name = ArrayHelper::get($routeData, 'name');
+					list($method, $path) = [$mountPoint, $prefix];
+					$routes->add(new RouteInfo($method,  $prefix, $handler, $middlewares, $name));
 				} else {
 					throw new \RuntimeException('Unsupported path type for path: ' . $mountPoint . ' ' . $prefix . ' ' . gettype($routeData));
 				}
