@@ -35,10 +35,11 @@ class PhpSessionWrapper implements SessionInterface
 		unset($_SESSION[$id]);
 	}
 
+
 	public function destroy(): bool
 	{
-		if (!$this->_initialized) return false;
-
+		$this->init();
+		$this->_initialized = false;
 		session_destroy();
 		return true;
 	}
