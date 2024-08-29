@@ -82,7 +82,12 @@ class ViewFactory implements ContainerAwareInterface {
 		return $view;
 	}
 
-	private function triggerEvent(string $event, string $view): array
+	/**
+         * @param string $event
+         * @param View|string $view
+         * @TODO figure out how to type $view
+         */
+	private function triggerEvent(string $event, $view): array
 	{
 		$em = $this->getEventManager();
 		if ($em === null) return [];
