@@ -3,26 +3,30 @@
 namespace WebImage\Application;
 
 use Psr\Log\InvalidArgumentException;
+use WebImage\Config\Config;
 use WebImage\Core\Dictionary;
 use WebImage\Core\Version;
 
 class PluginManifest
 {
-	private $fileKey = 'manifestFile';
+	private string $fileKey = 'manifestFile';
 	/** @var PluginAuthor[] */
-	private $authors = [];
+	private array $authors = [];
 	/** @var string */
 	private $id;
 	/** @var string */
-	private $name;
+	private string $name;
 	/** @var Version */
-	private $version;
+	private Version $version;
 	/** @var string */
-	private $description = '';
+	private string $description = '';
 	/** @var string $root Path to plugin root */
 	private $root;
 	private $requiredPlugins = [];
 
+	/**
+	 * @throws InvalidManifestException
+	 */
 	public function __construct(string $manifestFile)
 	{
 		$manifest = $this->parseManifestFile($manifestFile);
@@ -40,10 +44,10 @@ class PluginManifest
 	/**
 	 * @param string $manifestFile
 	 *
-	 * @return Dictionary
+	 * @return Config
 	 * @throws InvalidManifestException
 	 */
-	private function parseManifestFile(string $manifestFile)
+	private function parseManifestFile(string $manifestFile): Config
 	{
 		if (!file_exists($manifestFile)) {
 			throw new InvalidManifestException('Missing required plugin.json');
@@ -56,12 +60,12 @@ class PluginManifest
 			throw new InvalidManifestException('Unable to parse manifest file ' . $manifestFile);
 		}
 
-		$dManifest = new Dictionary($manifest);
-		$dManifest->set($this->fileKey, $manifestFile);
+		$config = new Config($manifest);
+		$config->set($this->fileKey, $manifestFile);
 
-		$this->validateKeys($manifest, ['id', 'name', 'version'], ['description', 'author', 'authors', 'requirements'], $dManifest);
+		$this->validateKeys($manifest, ['id', 'name', 'version'], ['description', 'author', 'authors', 'requirements'], $config);
 
-		return $dManifest;
+		return $config;
 	}
 
 	private function loadAuthors(Dictionary $manifest)
