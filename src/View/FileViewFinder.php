@@ -6,23 +6,23 @@ use RuntimeException;
 use WebImage\Paths\PathManager;
 
 class FileViewFinder implements ViewFinderInterface {
-	private static $EXCLUDE_PROFILES_CHAR = '!';
+	private static string $EXCLUDE_PROFILES_CHAR = '!';
 	/**
 	 * @var string[]
 	 */
-	protected $extensions = [];
+	protected array $extensions = [];
 	/**
 	 * @var string[]
 	 */
-	protected $profiles = [];
+	protected array $profiles = [];
 	/**
 	 * @var PathManager
 	 */
-	protected $paths;
+	protected PathManager $paths;
 	/**
 	 * @var string[] Cache of previously found views
 	 */
-	protected $views;
+	protected array $views;
 
 	public function __construct(PathManager $paths)
 	{
@@ -32,7 +32,7 @@ class FileViewFinder implements ViewFinderInterface {
 	/**
 	 * @inheritdoc
 	 */
-	public function find($view)
+	public function find($view): ?FoundView
 	{
 		$views = is_array($view) ? $view : [$view];
 		$primaryView = $views[0];
@@ -48,7 +48,7 @@ class FileViewFinder implements ViewFinderInterface {
 		return $this->views[$viewName] = null === $viewFile ? null : new FoundView($viewName, $viewFile);
 	}
 
-	private function firstExisting($filesViews)
+	private function firstExisting($filesViews): array
 	{
 		foreach ($filesViews as $file => $viewName) {
 			if (file_exists($file)) {
@@ -61,7 +61,7 @@ class FileViewFinder implements ViewFinderInterface {
 	/**
 	 * @inheritdoc
 	 */
-	public function addPath($location)
+	public function addPath($location): void
 	{
 		$this->paths->add($location);
 	}
@@ -69,7 +69,7 @@ class FileViewFinder implements ViewFinderInterface {
 	/**
 	 * @inheritdoc
 	 */
-	public function addVariation($variation)
+	public function addVariation(string $variation): void
 	{
 		$this->profiles[] = $variation;
 	}
@@ -77,7 +77,7 @@ class FileViewFinder implements ViewFinderInterface {
 	/**
 	 * @inheritdoc
 	 */
-	public function addExtension($extension)
+	public function addExtension($extension): void
 	{
 		if (($index = array_search($extension, $this->extensions)) !== false) {
 			unset($this->extensions[$index]);
@@ -128,7 +128,7 @@ class FileViewFinder implements ViewFinderInterface {
 	 * @param string|string[]|array $view
 	 * @return array [file] => viewName
 	 */
-	protected function getPossibleFilePaths($view)
+	protected function getPossibleFilePaths($view): array
 	{
 		return $this->getScoredPossiblePaths($view);
 	}

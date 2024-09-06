@@ -16,7 +16,7 @@ use WebImage\ServiceManager\ServiceManagerConfig;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
 use WebImage\Session\SessionServiceProvider;
 use WebImage\View\ViewFactory;
-use WebImage\View\FactoryServiceProvider as ViewFactoryServiceProvider;
+use WebImage\View\ViewFactoryServiceProvider;
 
 class HttpApplication extends AbstractApplication {
 	/**

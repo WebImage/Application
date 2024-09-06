@@ -9,7 +9,7 @@ interface ViewFinderInterface {
 	 * @param string|array $view
 	 * @return FoundView|null
 	 */
-	public function find($view);
+	public function find($view): ?FoundView;
 
 	/**
 	 * Add source path for views
@@ -18,7 +18,7 @@ interface ViewFinderInterface {
 	 *
 	 * @return void
 	 */
-	public function addPath($path);
+	public function addPath(string $path): void;
 
 	/**
 	 * Add a variation
@@ -26,12 +26,11 @@ interface ViewFinderInterface {
 	 * @param string $variation
 	 * @return void
 	 */
-	public function addVariation($variation);
+	public function addVariation(string $variation): void;
 
 	/**
 	 * Add a file extension
 	 * @param $extension
-	 * @return mixed
 	 */
-	public function addExtension($extension);
+	public function addExtension($extension): void;
 }
