@@ -5,6 +5,11 @@ namespace WebImage\Session;
 interface SessionInterface
 {
 	/**
+	 * Check if the session has been initialized
+	 * @return bool
+	 */
+	public function isInitialized(): bool;
+	/**
 	 * Get a stored value as a string or NULL if not set
 	 * @param string $id
 	 * @return string|null

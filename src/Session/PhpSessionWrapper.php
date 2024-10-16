@@ -6,6 +6,11 @@ class PhpSessionWrapper implements SessionInterface
 {
 	private bool $_initialized = false;
 
+	public function isInitialized(): bool
+	{
+		return $this->_initialized;
+	}
+
 	public function get(string $id): ?string
 	{
 		$this->init();
