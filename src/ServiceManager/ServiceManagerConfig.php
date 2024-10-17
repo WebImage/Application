@@ -69,14 +69,22 @@ class ServiceManagerConfig extends Config implements ServiceManagerConfigInterfa
 	{
 		if (is_array($config)) $config = new Config($config);
 
+		$removeKeys = [];
 		foreach($config as $alias => $concrete) {
 			$concrete = $this->normalizeConcrete($concrete);
 			if (is_numeric($alias)) {
-				$config->del($alias);
+				$removeKeys[] = $alias;
 				$alias = $concrete;
 				$concrete = null;
 			}
 			$config->set($alias, $concrete);
+		}
+
+		/**
+		 * Remove numeric keys - cannot remove values until this point because removing them in the above iteration messes with the loop
+		 */
+		foreach($removeKeys as $key) {
+			$config->del($key);
 		}
 
 		return $config;
