@@ -13,7 +13,7 @@ class PhpSessionWrapper implements SessionInterface
 
 	public function isAvailable(): bool
 	{
-		return session_status() === PHP_SESSION_ACTIVE;
+		return isset($_COOKIE[session_name()]) && !empty($_COOKIE[session_name()]);
 	}
 
 	public function get(string $id): ?string
@@ -51,6 +51,8 @@ class PhpSessionWrapper implements SessionInterface
 		$this->init();
 		$this->_initialized = false;
 		session_destroy();
+		unset($_COOKIE[session_name()]);
+		setcookie(session_name(),'',0,'/');
 		return true;
 	}
 
