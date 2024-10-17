@@ -5,6 +5,7 @@ namespace WebImage\Session;
 class PhpSessionWrapper implements SessionInterface
 {
 	private bool $_initialized = false;
+	private ?bool $_available = null;
 
 	public function isInitialized(): bool
 	{
@@ -13,7 +14,11 @@ class PhpSessionWrapper implements SessionInterface
 
 	public function isAvailable(): bool
 	{
-		return isset($_COOKIE[session_name()]) && !empty($_COOKIE[session_name()]);
+		if ($this->_available === null) {
+			$this->_available = isset($_COOKIE[session_name()]) && !empty($_COOKIE[session_name()]);
+		}
+
+		return $this->_available;
 	}
 
 	public function get(string $id): ?string
@@ -50,6 +55,7 @@ class PhpSessionWrapper implements SessionInterface
 	{
 		$this->init();
 		$this->_initialized = false;
+		$this->_available = null;
 		session_destroy();
 		unset($_COOKIE[session_name()]);
 		setcookie(session_name(),'',0,'/');
