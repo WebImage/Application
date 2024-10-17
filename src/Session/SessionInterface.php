@@ -9,6 +9,12 @@ interface SessionInterface
 	 * @return bool
 	 */
 	public function isInitialized(): bool;
+
+	/**
+	 * Lazily check whether a session is available without initialize the session (i.e. to prevent session cookies from being set)
+	 * @return bool
+	 */
+	public function isAvailable(): bool;
 	/**
 	 * Get a stored value as a string or NULL if not set
 	 * @param string $id

@@ -11,6 +11,11 @@ class PhpSessionWrapper implements SessionInterface
 		return $this->_initialized;
 	}
 
+	public function isAvailable(): bool
+	{
+		return session_status() === PHP_SESSION_ACTIVE;
+	}
+
 	public function get(string $id): ?string
 	{
 		$this->init();
