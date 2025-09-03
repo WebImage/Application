@@ -21,8 +21,8 @@ class PluginManifest
 	/** @var string */
 	private string $description = '';
 	/** @var string $root Path to plugin root */
-	private $root;
-	private $requiredPlugins = [];
+	private string $root;
+	private array  $requiredPlugins = [];
 
 	/**
 	 * @throws InvalidManifestException
