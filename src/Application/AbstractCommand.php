@@ -2,11 +2,11 @@
 
 namespace WebImage\Application;
 
-use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
-use Symfony\Component\Console\Command\Command;
+use WebImage\Commands\Command;
 
-class AbstractCommand extends Command implements ContainerAwareInterface
+/**
+ * @deprecated Use WebImage\Console\Command instead
+ */
+abstract class AbstractCommand extends Command
 {
-	use ContainerAwareTrait;
 }

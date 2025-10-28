@@ -5,27 +5,28 @@
  */
 namespace WebImage\Commands;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use WebImage\Application\AbstractCommand;
 use WebImage\Application\ApplicationInterface;
 use WebImage\Config\Config;
+use WebImage\Console\FlexibleOption;
+use WebImage\Console\InputInterface;
+use WebImage\Console\OutputInterface;
+use WebImage\Console\ValueOption;
 
-class ServeCommand extends AbstractCommand
+class ServeCommand extends Command
 {
 	private int $portOffset = 0; // Start from PORT and increment in case of failure
 	private int $tries = 10; // Max number of tries to start server using incremental $portOffset
 
-	protected function configure()
+	protected function configure(): void
 	{
 		$this->setName('serve');
 		$this->setDescription('Run a PHP server');
-		$this->addOption('php', 'The PHP Binary [default: "PHP_BINARY"]');
-		$this->addOption('host', 'The HTTP Host [default: "localhost"]');
-		$this->addOption('port', 'The HTTP Host Port [default: "8080"]');
+		$this->addOption(ValueOption::optional('php', 'The PHP Binary', null, PHP_BINARY));
+		$this->addOption(ValueOption::optional('host', 'The HTTP Host', null, 'localhost'));
+		$this->addOption(ValueOption::optional('port', 'The HTTP Host Port', null, 8080));
 	}
 
-	protected function execute(InputInterface $input, OutputInterface $output)
+	public function execute(InputInterface $input, OutputInterface $output): int
 	{
 		// Collect any user-supplied options and apply them.
 		$php  = escapeshellarg($input->getOption('php') == '' ? PHP_BINARY : $input->getOption('php'));
@@ -50,8 +51,10 @@ class ServeCommand extends AbstractCommand
 		if ($status && $this->portOffset < $this->tries) {
 			$this->portOffset++;
 
-			$this->run($input, $output);
+			return $this->execute($input, $output);
 		}
+
+		return 0;
 	}
 
 	private function getWebRoot(): string
