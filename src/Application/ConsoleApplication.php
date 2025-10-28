@@ -4,91 +4,87 @@ namespace WebImage\Application;
 
 use Exception;
 use League\Container\ContainerAwareInterface;
-use Symfony\Component\Console\Application as SymfonyConsoleApplication;
-use Symfony\Component\Console\Command\Command;
 use WebImage\Config\Config;
-use WebImage\ServiceManager\ServiceManagerInterface;
+use WebImage\Console\Console;
+use WebImage\Console\Discovery\ConfigCommandDiscovery;
+use WebImage\Console\Discovery\DirectoryCommandDiscovery;
+use WebImage\Console\Discovery\CompositeCommandDiscovery;
 
-class ConsoleApplication extends AbstractApplication
+class ConsoleApplication extends AbstractConsoleApplication
 {
 	const CONFIG_CONSOLE = 'console';
 	const CONFIG_COMMANDS = 'commands';
 	const CONFIG_DEFAULT_COMMAND = 'defaultCommand';
-	const CONFIG_IS_SINGLE_COMMAND = 'isSingleCommand';
-	const CONFIG_APP_NAME = 'applicationName';
-	const CONFIG_APP_VERSION = 'applicationVersion';
+	const CONFIG_COMMAND_DIRECTORIES = 'commandDirectories';
+	const CONFIG_COMMAND_NAMESPACE = 'commandNamespace';
 
-	/**
-	 * @throws Exception
-	 */
-	public function run()
+	protected function setupCommandDiscovery(Console $console): void
 	{
-		parent::run();
+		$discoveries = new CompositeCommandDiscovery();
 
-		$app = $this->createSymfonyConsoleApplication();
-		$this->loadCommands($app);
-		$this->setupDefaultCommand($app);
-		$app->run();
-	}
+		// Add config-based discovery
+		$this->addConfigDiscovery($discoveries);
 
-	protected function createSymfonyConsoleApplication(): SymfonyConsoleApplication
-	{
-		return new SymfonyConsoleApplication($this->getSymfonyApplicationName(), $this->getSymfonyApplicationVersion());
-	}
+		// Add directory-based discovery
+		$this->addDirectoryDiscovery($discoveries);
 
-	protected function getSymfonyApplicationName(): string
-	{
-		return $this->getConfig()->get(self::CONFIG_APP_NAME, 'Console');
-	}
-
-	protected function getSymfonyApplicationVersion(): string
-	{
-		return $this->getConfig()->get(self::CONFIG_APP_VERSION, '1.0.0');
-	}
-
-	protected function loadCommands(SymfonyConsoleApplication $app)
-	{
-		$config   = $this->getConfig()->has(self::CONFIG_CONSOLE) ? $this->getConfig()->get(self::CONFIG_CONSOLE) : new Config();
-		$commands = $config->get(self::CONFIG_COMMANDS, []);
-		$sm       = $this->getServiceManager();
-
-		foreach($commands as $commandName => $class) {
-
-			/** @var Command $command */
-			$command = $sm->has($class) ? $sm->get($class) : new $class();
-			if (!is_numeric($commandName)) $command->setName($commandName);
-
-			// Assign ContainerManager if the command supports it
-			if ($command instanceof ContainerAwareInterface) $command->setContainer($this->getServiceManager());
-
-			$app->add($command);
+		// Add all discovered
+		foreach($discoveries->discover() as $command) {
+			$console->addCommand($command);
 		}
 	}
 
-	/**
-	 * Sets the default command
-	 *
-	 * @param SymfonyConsoleApplication $app
-	 */
-	protected function setupDefaultCommand(SymfonyConsoleApplication $app)
+	protected function addConfigDiscovery(CompositeCommandDiscovery $discoveries): void
 	{
-		if (!$this->getConfig()->has(self::CONFIG_CONSOLE)) return;
+		$config = $this->getConfig()->has(self::CONFIG_CONSOLE)
+			? $this->getConfig()->get(self::CONFIG_CONSOLE)
+			: new Config();
 
-		$config          = $this->getConfig()->get(self::CONFIG_CONSOLE);
-		$defaultCommand  = $config->get(self::CONFIG_DEFAULT_COMMAND);
-		$isSingleCommand = $config->get(self::CONFIG_IS_SINGLE_COMMAND, false);
+		$commands = $config->get(self::CONFIG_COMMANDS, []);
 
-		if ($defaultCommand === null) return;
+		if (!empty($commands)) {
+			if ($commands instanceof Config) $commands = $commands->toArray();
 
-		$command = $app->find($defaultCommand);
-		$app->setDefaultCommand($command->getName(), $isSingleCommand);
+			$discoveries->addDiscovery(
+				new ConfigCommandDiscovery($commands, $this->getServiceManager())
+			);
+		}
 	}
 
-	public static function create(Config $config = null, string $applicationName = null, string $applicationVersion = null): ApplicationInterface
+	protected function addDirectoryDiscovery(CompositeCommandDiscovery $discoveries): void
 	{
-		if ($applicationName !== null) $config->set(self::CONFIG_APP_NAME, $applicationName);
-		if ($applicationVersion !== null) $config->set(self::CONFIG_APP_VERSION, $applicationVersion);
+		$config = $this->getConfig()->has(self::CONFIG_CONSOLE)
+			? $this->getConfig()->get(self::CONFIG_CONSOLE)
+			: new Config();
 
-		return parent::create($config);
+		$directories = $config->get(self::CONFIG_COMMAND_DIRECTORIES, []);
+		$namespace = $config->get(self::CONFIG_COMMAND_NAMESPACE, '');
+
+		foreach ($directories as $directory) {
+			if (is_dir($directory)) {
+				$discoveries->addDiscovery(
+					new DirectoryCommandDiscovery($directory, $namespace)
+				);
+			}
+		}
+	}
+
+	protected function setupDefaultCommand(Console $console): void
+	{
+		if (!$this->getConfig()->has(self::CONFIG_CONSOLE)) {
+			return;
+		}
+
+		$config = $this->getConfig()->get(self::CONFIG_CONSOLE);
+		$defaultCommand = $config->get(self::CONFIG_DEFAULT_COMMAND);
+
+		if ($defaultCommand === null) {
+			return;
+		}
+
+		// Verify the default command exists
+		if ($console->hasCommand($defaultCommand)) {
+			$console->setDefaultCommand($defaultCommand);
+		}
 	}
 }

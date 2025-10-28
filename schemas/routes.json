@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webimage.dev/schemas/routes.schema.json",
+  "title": "Route Configuration",
+  "description": "YAML route configuration schema for WebImage framework",
+  "type": "object",
+  "properties": {
+    "include": {
+      "type": "array",
+      "description": "Include other route files (paths relative to current file)",
+      "items": {
+        "type": "string",
+        "description": "Path to route file (relative or absolute)"
+      }
+    },
+    "routes": {
+      "type": "object",
+      "description": "Route definitions",
+      "patternProperties": {
+        "^/": {
+          "$ref": "#/definitions/route"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["routes"],
+  "additionalProperties": false,
+  "definitions": {
+    "route": {
+      "type": "object",
+      "description": "A route definition or nested routes",
+      "properties": {
+        "GET": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "POST": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "PUT": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "DELETE": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "PATCH": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "OPTIONS": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "HEAD": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Handler in format: ControllerName@method",
+              "pattern": "^[\\w\\\\]+@\\w+$"
+            },
+            {
+              "$ref": "#/definitions/methodConfig"
+            }
+          ]
+        },
+        "middleware": {
+          "type": "array",
+          "description": "Middleware to apply to this route and its children. Use '-middleware' to remove inherited middleware.",
+          "items": {
+            "type": "string",
+            "description": "Middleware name, or '-middleware' to remove"
+          }
+        },
+        "domain": {
+          "type": "string",
+          "description": "Restrict route to specific domain (e.g., 'admin.example.com')"
+        },
+        "options": {
+          "type": "object",
+          "description": "Custom options for the route (e.g., rate limiting, caching)",
+          "additionalProperties": true
+        },
+        "include": {
+          "type": "array",
+          "description": "Include other route files at this level",
+          "items": {
+            "type": "string",
+            "description": "Path to route file (relative or absolute)"
+          }
+        }
+      },
+      "patternProperties": {
+        "^/": {
+          "$ref": "#/definitions/route"
+        }
+      },
+      "additionalProperties": false
+    },
+    "methodConfig": {
+      "type": "object",
+      "description": "Advanced method configuration",
+      "properties": {
+        "handler": {
+          "type": "string",
+          "description": "Handler in format: ControllerName@method",
+          "pattern": "^[\\w\\\\]+@\\w+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Named route for URL generation"
+        },
+        "middleware": {
+          "type": "array",
+          "description": "Method-specific middleware (in addition to inherited middleware)",
+          "items": {
+            "type": "string",
+            "description": "Middleware name"
+          }
+        },
+        "options": {
+          "type": "object",
+          "description": "Method-specific options",
+          "additionalProperties": true
+        }
+      },
+      "required": ["handler"],
+      "additionalProperties": false
+    }
+  }
+}

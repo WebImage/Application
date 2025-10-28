@@ -1,0 +1,52 @@
+# api-routes.yaml
+# API endpoints
+
+routes:
+  /api/v1:
+    middleware: [api, cors]
+
+    # Users API
+    /users:
+      GET: Api\UserController@index
+      POST: Api\UserController@store
+
+      /{id}:
+        GET: Api\UserController@show
+        PUT: Api\UserController@update
+        DELETE: Api\UserController@destroy
+
+    # Products API
+    /products:
+      GET: Api\ProductController@index
+      POST:
+        handler: Api\ProductController@store
+        middleware: [auth, admin]
+
+      /{id}:
+        GET: Api\ProductController@show
+        PUT:
+          handler: Api\ProductController@update
+          middleware: [auth, admin]
+        DELETE:
+          handler: Api\ProductController@destroy
+          middleware: [auth, admin]
+
+    # Orders API
+    /orders:
+      middleware: [auth]
+
+      GET: Api\OrderController@index
+      POST: Api\OrderController@store
+
+      /{id}:
+        GET: Api\OrderController@show
+        PUT: Api\OrderController@update
+        DELETE: Api\OrderController@cancel
+
+  # API v2 (newer version)
+  /api/v2:
+    middleware: [api, cors, v2-features]
+
+    /users:
+      GET: Api\V2\UserController@index
+      POST: Api\V2\UserController@store

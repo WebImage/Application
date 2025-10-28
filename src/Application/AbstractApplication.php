@@ -3,7 +3,6 @@
 namespace WebImage\Application;
 
 use WebImage\Config\Config;
-use WebImage\Core\Dictionary;
 use WebImage\Event\EventServiceProvider;
 use WebImage\Paths\PathManagerServiceProvider;
 use WebImage\ServiceManager\ServiceManager;
@@ -36,15 +35,19 @@ abstract class AbstractApplication implements ApplicationInterface
 
 		// Register this app instance with the service manager
 		$serviceManager->addShared(ApplicationInterface::class, $this);
+        $this->initialize();;
 	}
 
 	/**
 	 * @inheritdoc
 	 */
-	public function run() {
-		$this->autoload();
-		$this->plugins->init($this);
-	}
+	abstract public function run(): int;
+
+    protected function initialize()
+    {
+        $this->autoload();
+        $this->plugins->init($this);
+    }
 
 	private function autoload()
 	{
@@ -146,6 +149,36 @@ abstract class AbstractApplication implements ApplicationInterface
 
 		return new static($config, $serviceManager);
 	}
+
+    /**
+     * @param string $path
+     * @return static|ApplicationInterface
+     */
+    public static function fromConfig(string $path): ApplicationInterface
+    {
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException("Configuration file '$path' does not exist");
+        }
+
+        $aConfig = require $path;
+        if (!is_array($aConfig)) {
+            throw new \InvalidArgumentException("Configuration file '$path' should be an array");
+        }
+
+        $config = new Config($aConfig);
+        
+        // If the app.path is not defined in the config, then set it here.
+        if (!$config->has('app.path')) {
+            if (!$config->has('app')) $config->set('app', new Config());
+
+            $appPath = dirname($path); // Assume config path is project path
+            if (strtolower(basename($appPath)) == 'config') $appPath = dirname($appPath); // If the config path is in a directory called "config" then assume the project path is one level up 
+            
+            $config->get('app')->set('path', $appPath);
+        }
+
+        return self::create($config);
+    }
 
 	/**
 	 * Gets the application root dir (path of the project's composer file). (Thanks Symfony)

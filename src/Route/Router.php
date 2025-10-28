@@ -21,7 +21,7 @@ class Router extends \League\Route\Router implements ContainerAwareInterface
 		$strategy = parent::getStrategy();
 
 		if (null === $strategy) {
-			$strategy = new ApplicationStrategy(new HttpFactory());
+			$strategy = new ApplicationStrategy();
 			$strategy->setContainer($this->getContainer());
 		}
 

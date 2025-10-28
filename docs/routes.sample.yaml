@@ -1,0 +1,98 @@
+# Example routes.yaml
+# This file demonstrates the YAML route configuration format
+
+# Include other route files (relative paths are relative to this file)
+include:
+  - ./auth-routes.yaml
+  - ./api-routes.yaml
+
+routes:
+  # Simple root route
+  /:
+    GET: HomeController@index
+
+  # About page
+  /about:
+    GET: HomeController@about
+
+  # Contact with multiple methods
+  /contact:
+    GET: ContactController@show
+    POST: ContactController@submit
+
+  # Admin section with middleware
+  /admin:
+    middleware: [auth, admin]
+    domain: admin.example.com  # Only accessible via this domain (optional)
+
+    GET: AdminController@dashboard
+
+    # Nested admin routes (inherit middleware)
+    /users:
+      GET: AdminController@listUsers
+      POST: AdminController@createUser
+
+      # User detail routes
+      /{id}:
+        GET: AdminController@showUser
+        PUT: AdminController@updateUser
+        DELETE: AdminController@deleteUser
+
+    /settings:
+      GET: AdminController@settings
+      POST: AdminController@updateSettings
+
+  # Blog section
+  /blog:
+    middleware: [cache]
+
+    GET: BlogController@index
+
+    # Blog post detail
+    /{slug}:
+      GET: BlogController@show
+
+    # Comments (inherits /blog prefix and cache middleware)
+    /{slug}/comments:
+      GET: BlogController@comments
+      POST:
+        handler: BlogController@addComment
+        middleware: [auth]  # Add auth middleware for POST only
+
+  # API routes with custom options
+  /api:
+    middleware: [cors, rate-limit]
+    options:
+      rate_limit: 100
+      rate_period: 60
+
+    /posts:
+      GET: PostController@index
+      POST: PostController@store
+
+      /{id}:
+        GET: PostController@show
+        PUT: PostController@update
+        DELETE: PostController@destroy
+    include:
+      - ./routes.api-v1.yaml
+
+  # Route with named route for URL generation
+  /profile:
+    GET:
+      handler: ProfileController@show
+      name: profile.show
+      middleware: [auth]
+    PUT:
+      handler: ProfileController@update
+      name: profile.update
+      middleware: [auth, validate-profile]
+
+
+  # Removing inherited middleware
+  /public:
+    middleware: [cors]
+
+    /health:
+      middleware: [-cors]  # Remove cors middleware for this route
+      GET: HealthController@check

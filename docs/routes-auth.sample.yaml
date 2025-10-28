@@ -1,0 +1,41 @@
+# auth-routes.yaml
+# Authentication and authorization routes
+
+routes:
+  /login:
+    middleware: [guest]
+    
+    GET: AuthController@showLogin
+    POST: AuthController@login
+
+  /logout:
+    POST:
+      handler: AuthController@logout
+      middleware: [auth]
+
+  /register:
+    middleware: [guest]
+    
+    GET: AuthController@showRegister
+    POST: AuthController@register
+
+  /password:
+    /forgot:
+      GET: AuthController@showForgotPassword
+      POST: AuthController@sendResetLink
+
+    /reset/{token}:
+      GET: AuthController@showResetForm
+      POST: AuthController@resetPassword
+
+  /email/verify:
+    GET:
+      handler: AuthController@verifyEmail
+      middleware: [auth]
+      name: verification.verify
+
+  /email/resend:
+    POST:
+      handler: AuthController@resendVerification
+      middleware: [auth, throttle]
+      name: verification.resend

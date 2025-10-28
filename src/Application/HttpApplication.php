@@ -4,31 +4,73 @@ namespace WebImage\Application;
 
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use WebImage\Controllers\ExceptionsController;
 use WebImage\Core\ArrayHelper;
-use WebImage\Http\Response;
 use WebImage\Http\ServerRequest;
+use WebImage\Route\ArrayRouteLoader;
 use WebImage\Route\Router;
 use WebImage\Route\RouterServiceProvider;
-use WebImage\ServiceManager\ServiceManagerConfig;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
 use WebImage\Session\SessionServiceProvider;
-use WebImage\View\ViewFactory;
 use WebImage\View\ViewFactoryServiceProvider;
 
 class HttpApplication extends AbstractApplication {
 	/**
 	 * @inheritdoc
 	 */
-	public function run()
+	public function run(): int
 	{
-		parent::run();
-		$this->sendResponse();
+        return $this->sendResponse();
 	}
 
-	private function sendResponse(): void
+    protected function initialize()
+    {
+        parent::initialize();
+        $this->autoLoadRoutes();
+    }
+
+    /**
+     * Automatically load compiled routes if configured
+     */
+    protected function autoLoadRoutes(): void
+    {
+        $config = $this->getConfig();
+
+        // Check if auto-loading is disabled
+        if (isset($config['router']['autoLoad']) && !$config['router']['autoLoad']) {
+            return;
+        }
+
+        // Get compiled file path
+        $compiledFile = $config['router']['compiledFile'] ?? $this->getProjectPath() . '/config/routes.yaml.php';
+
+        // Load if exists
+        if (file_exists($compiledFile)) {
+            $this->loadRoutesFromFile($compiledFile);
+        } elseif (isset($config['router']['required']) && $config['router']['required']) {
+            throw new \RuntimeException("Required routes file not found: {$compiledFile}");
+        }
+    }
+
+    /**
+     * Load routes from compiled PHP file
+     *
+     * @param string $file Path to compiled routes file
+     */
+    public function loadRoutesFromFile(string $file): void
+    {
+        if (!file_exists($file)) {
+            throw new \RuntimeException("Routes file not found: {$file}");
+        }
+
+        $routeArray = require $file;
+        $loader = new ArrayRouteLoader();
+        $routes = $loader->load($routeArray);
+        $routes->injectRoutes($this->routes());
+    }
+
+	private function sendResponse(): int
 	{
 		$router = $this->routes();
 		$response = $router->dispatch($this->getRequest());
@@ -49,6 +91,8 @@ class HttpApplication extends AbstractApplication {
 		}
 
 		echo $response->getBody();
+
+        return 0;
 	}
 
 	/**
@@ -116,6 +160,12 @@ class HttpApplication extends AbstractApplication {
 		return array_merge_recursive(parent::getDefaultConfig(), [
 			'app' => ['controllers' => ['namespace' => 'App\\Controllers']],
 			'views' => ['helpers' => ['namedRoute' => \WebImage\View\Helpers\NamedRouteHelper::class]],
+            'router' => [
+                'autoLoad' => true,  // Autoload compiled routes
+                'required' => false, // Don't throw error if missing
+                'routeFiles' => null, // Will default to /app/config/routes.yaml in compiler
+                'compiledFile' => null // Will default to /app/config/routes.yaml.php in compiler
+            ],
 		]);
 	}
 }

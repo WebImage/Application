@@ -7,6 +7,7 @@ use WebImage\ServiceManager\ServiceManagerAwareInterface;
 use WebImage\ServiceManager\ServiceManagerConfigInterface;
 
 interface ApplicationInterface extends ServiceManagerAwareInterface {
+    const RUN_STATUS_OKAY = 0;
 	const CONFIG_SERVICE_MANAGER = 'serviceManager';
 
 	/**
@@ -19,9 +20,9 @@ interface ApplicationInterface extends ServiceManagerAwareInterface {
 	/**
 	 * Executes an application to completion
 	 *
-	 * @return null
+	 * @return int
 	 */
-	public function run();
+	public function run(): int;
 
 	/**
 	 * Register an application plugin

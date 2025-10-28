@@ -3,7 +3,7 @@
   "description": "Application components",
   "type": "library",
   "require": {
-    "webimage/core": "^1.5.1",
+    "webimage/core": "^1.6.0",
     "league/route": "^5.1",
     "guzzlehttp/psr7": "^2.0",
     "psr/http-message": "^1.1 || ^2.0",
